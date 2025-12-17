@@ -2,33 +2,45 @@
 
 import { useEffect, useState } from "react";
 import { fetchCharacter } from "../../../../../libs/character-data";
-import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField, EquipmentTable, ArmourTable, ClassLevelTable } from './character-fields';
+import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField, EquipmentTable, ArmourTable, ClassLevelTable, AddNewCharacterClassModal } from './character-fields';
 import { Container, Grid, Box } from "@mui/material";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { AbilityScore, Armour, Character, CharacterDataProps, Equipments, HitPoints, SaveScores } from "./character-models";
+import { AbilityScore, Armour, Character, CharacterDataProps, CharacterLevelDataProps, Equipments, HitPoints, SaveScores } from "./character-models";
 import { calculate_ability_score_modifiers, calculate_proficiency_bonus, calculate_save_score_modifiers, character_level_calculation } from './character-logic'
+import { ClassModel } from "./class-models";
+import { fetchAllClass } from "@/app/libs/class-data";
+import { PROFICIENCY_BONUS_FIELD } from "@/app/libs/constants";
 
 const queryClient = new QueryClient()
 
 function CharacterClientContent({character} : {character : string}) {
-    const { data, isLoading } = useQuery({
+    const charProfile= useQuery({
         queryKey: [character.replaceAll("%20", "_") + "_Char_Profile"],
         queryFn: () => fetchCharacter({ name: character}),
         select: (res) => res.items[0]
     });
+
+    const classList = useQuery({
+        queryKey: ["class_data"],
+        queryFn: () => fetchAllClass(),
+        select: (res) => res.items
+    });
+
     const [formData, setFormData] = useState<Character | null>(null);
+    const [classListData, setClassListData] = useState<ClassModel[] | null>(null);
 
     useEffect(() => {
-        if (data) setFormData(data)
-    }, [data]);
+        if (charProfile.data) setFormData(charProfile.data)
+        if (classList.data) setClassListData(classList.data)
+    }, [charProfile.data, classList.data]);
 
-    if (isLoading || !formData) return <div>Loading…</div>;
+    if (charProfile.isLoading || !formData || classList.isLoading || !classListData) return <div>Loading…</div>;
 
     return (
         <Container maxWidth="lg">
             <CharacterGeneralInfoModule formData={formData} setFormData={setFormData} />
             <SectionDivider sectionText="Character Core" />
-            <CharacterLevelTableModule formData={formData} setFormData={setFormData} />
+            <CharacterLevelTableModule formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
             <AbilitySaveScoresInfo formData={formData} setFormData={setFormData} />
             <CharacterGeneralInfoAdditionalAbilities formData={formData} setFormData={setFormData} />
             <SectionDivider sectionText="Combat" />
@@ -73,22 +85,22 @@ export function CharacterGeneralInfoAdditionalAbilities(props: CharacterDataProp
 
     useEffect(() => {
         const profValue = props.formData.characterAdditionalScores.find(
-            prof => prof.description === "Proficiency Bonus"
+            prof => prof.description === PROFICIENCY_BONUS_FIELD
         )?.value;
         
-        if (profValue === undefined || profValue === proficiencyCalc) return; // safety check
+        if (profValue === undefined || profValue === proficiencyCalc) return;
 
         props.setFormData(prev => ({
             ...prev!,
             characterAdditionalScores: prev!.characterAdditionalScores.map(charClass =>
-                charClass.description === "Proficiency Bonus"
+                charClass.description === PROFICIENCY_BONUS_FIELD
                     ? { ...charClass, value: proficiencyCalc }
                     : charClass
             ),
         }));
     }, [
-        props.formData.characterAdditionalScores, // array reference as dependency
-        proficiencyCalc,                          // include the new computed value
+        props.formData.characterAdditionalScores,
+        proficiencyCalc,
     ]);
 
 
@@ -113,7 +125,7 @@ export function CharacterGeneralInfoAdditionalAbilities(props: CharacterDataProp
     </Box>
 }
 
-export function CharacterLevelTableModule(charProps: CharacterDataProps) {
+export function CharacterLevelTableModule(charLevelProps: CharacterLevelDataProps) {
     return <Box sx={{ margin: 2 }}>
         <Grid
             container
@@ -123,7 +135,9 @@ export function CharacterLevelTableModule(charProps: CharacterDataProps) {
         >
             <Grid size={{ xs: 12, sm: 6 }}>
                 <SectionDivider sectionText="Class Info" />
-                <ClassLevelTable pageProps={charProps}/>
+                <ClassLevelTable pageProps={charLevelProps}/>
+                <AddNewCharacterClassModal classListData={charLevelProps.classListData} setClassListData={charLevelProps.setClassListData}
+                formData={charLevelProps.formData} setFormData={charLevelProps.setFormData}/>
             </Grid>
         </Grid>
     </Box>

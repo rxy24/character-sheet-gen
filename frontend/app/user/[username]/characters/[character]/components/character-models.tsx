@@ -1,3 +1,5 @@
+import { ClassListDataProps, ClassModel } from "./class-models";
+
 export interface CharacterMiscFieldProps {
     label: string;
     value: string;
@@ -93,4 +95,11 @@ export interface ClassLevelFieldProps {
 export interface CharacterDataProps {
     formData: Character;
     setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
+}
+
+export interface CharacterLevelDataProps {
+    formData: Character;
+    setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
+    classListData : ClassModel[]
+    setClassListData: React.Dispatch<React.SetStateAction<ClassModel[] | null>>;
 }

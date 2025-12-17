@@ -15,10 +15,8 @@ export default async function CharacterPage({ params }: { params: { character: s
   }
 
   return (
-    <div>
-      <AppRouterCacheProvider>
-        <CharacterClientPage characterSlug={character}/>
-      </AppRouterCacheProvider>
-    </div>
+    <AppRouterCacheProvider>
+      <CharacterClientPage characterSlug={character} />
+    </AppRouterCacheProvider>
   );
 }
