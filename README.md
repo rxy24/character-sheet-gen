@@ -28,7 +28,7 @@ The following section contains instructions on setting up this project in a deve
 
 - Run the following command to activate the backend api:
 ```
-fastapi api/main.py
+fastapi dev api/main.py
 ```
 
 #### Frontend Setup

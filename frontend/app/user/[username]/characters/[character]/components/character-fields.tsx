@@ -1,18 +1,21 @@
 
 "use client";
-import { Box, Button, Divider, FormControl, InputLabel, MenuItem, Modal, Select, TextField, Typography } from "@mui/material"
-import { DataGrid, GridColDef, GridCellParams, GridRowModel } from '@mui/x-data-grid';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, IconButton, InputLabel, MenuItem, Modal, Select, TextField, Typography } from "@mui/material"
+import { DataGrid, GridColDef, GridCellParams, GridRowModel, GridDeleteIcon } from '@mui/x-data-grid';
 import CheckIcon from '@mui/icons-material/FiberManualRecord';
 import { useEffect, useState } from "react";
 import { AbilityScore, AbilityScoreParams, Armour, CharacterClass, CharacterLevelDataProps, CharacterMiscFieldParams, ClassLevelFieldProps, Equipments, HitPoints, SaveScores, SaveScoresParam } from "./character-models";
 import { Add } from "@mui/icons-material";
 import React from "react";
+import { useAlert } from "../../../components/alert-provider";
 
 export function CharacterLevelField({ levelValue, disabled }: { levelValue: number, disabled: boolean }) {
     const options = [];
-    for (let i: number = 0; i < 20; i++) {
-        options.push({ value: i + 1, label: i + 1 })
+    for (let i: number = 0; i < 21; i++) {
+        options.push({ value: i, label: i })
     }
+
+    const selectedValue = levelValue ? levelValue : 0
     return (
         <div>
             <FormControl fullWidth>
@@ -22,7 +25,7 @@ export function CharacterLevelField({ levelValue, disabled }: { levelValue: numb
                     id="outlined-basic"
                     name="character-level-dropdown"
                     variant="outlined"
-                    value={levelValue}
+                    value={selectedValue}
                     disabled={disabled}
                     type='text'
                     label="Level"
@@ -248,7 +251,7 @@ export function CharacterSaveTable(charProps: SaveScoresParam) {
     )
 }
 
-export function SectionDivider({ sectionText, color = "teal" }: { sectionText: string, color?: string }) {
+export function SectionDivider({ sectionText, color = "#23486D" }: { sectionText: string, color?: string }) {
     return (
         <Box display="flex" alignItems="center" my={3}>
             <Divider sx={{ flex: 1, height: 8, backgroundColor: color, borderRadius: 2 }} />
@@ -288,7 +291,6 @@ export function HealthPointInfo({ hpModel }: { hpModel: HitPoints }) {
                         variant="standard"
                         defaultValue={hpModel.currentHp}
                         sx={{ paddingRight: 1, paddingBottom: 1 }}
-                    // style={{ width: "px" }}
                     />
                 </Box>
                 <Box width={100}>
@@ -424,6 +426,7 @@ const style = {
 export function AddNewCharacterClassModal(charLevelProp: CharacterLevelDataProps) {
     const [open, setOpen] = React.useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { showAlert } = useAlert();
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
@@ -445,7 +448,7 @@ export function AddNewCharacterClassModal(charLevelProp: CharacterLevelDataProps
             level: Number(levelValue)
         }
 
-        if(charLevelProp.formData.classes.filter(classItem => classItem.className === classValue).length > 0){
+        if (charLevelProp.formData.classes.filter(classItem => classItem.className === classValue).length > 0) {
             console.log(charLevelProp.formData.classes)
             setError(`${newClass.className} already exists on table. Please edit the table or select a different value`);
             return;
@@ -462,6 +465,8 @@ export function AddNewCharacterClassModal(charLevelProp: CharacterLevelDataProps
         setClassValue("")
         setLevelValue("")
         setOpen(false)
+
+        setTimeout(() => showAlert('success', 'Character Class Successfully Added'), 0);
     };
 
     const handleCancelClick = () => {
@@ -471,77 +476,107 @@ export function AddNewCharacterClassModal(charLevelProp: CharacterLevelDataProps
         setOpen(false)
     }
 
-    return (<div>
+
+    return (<>
         <Box display="flex" justifyContent="center" mt={2}>
             <Button onClick={handleOpen} variant="outlined" startIcon={<Add />}>
                 Add New Class
             </Button>
         </Box>
 
-        <Modal
+        <Dialog
             open={open}
             onClose={handleClose}
+            closeAfterTransition={false}
             aria-labelledby="character-class-modal"
+            slotProps={{
+                paper: {
+                    sx: {
+                        width: 600,
+                        maxWidth: 600,
+                    },
+                },
+            }}
         >
-            <Box sx={style}>
-                <Typography gutterBottom>
-                    Add a New Character Class
-                </Typography>
-                <form onSubmit={handleSubmit}>
-                    <FormControl sx={{marginTop:2}} fullWidth required>
-                        <InputLabel id="class-options-label">
-                            Character Class
-                        </InputLabel>
-                        <Select
-                            value={classValue}
-                            labelId="class-options-label"
-                            id="outlined-basic"
-                            name="class-options-dropdown"
-                            variant="outlined"
-                            type='text'
-                            label="Character Class"
-                            onChange={handleChange}
-                        >
-                            <MenuItem value="" disabled>
-                                <em>Select type</em>
+            <DialogTitle>Add new Class</DialogTitle>
+            <DialogContent>
+            <form onSubmit={handleSubmit} id="add-new-character-class-form">
+                <FormControl sx={{ marginTop: 2 }} fullWidth required>
+                    <InputLabel id="class-options-label">
+                        Character Class
+                    </InputLabel>
+                    <Select
+                        value={classValue}
+                        labelId="class-options-label"
+                        id="outlined-basic"
+                        name="class-options-dropdown"
+                        variant="outlined"
+                        type='text'
+                        label="Character Class"
+                        onChange={handleChange}
+                    >
+                        <MenuItem value="" disabled>
+                            <em>Select type</em>
+                        </MenuItem>
+                        {classNameList.map((className) => (
+                            <MenuItem key={className} value={className}>
+                                {className}
                             </MenuItem>
-                            {classNameList.map((className) => (
-                                <MenuItem key={className} value={className}>
-                                    {className}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                        <TextField sx={{ marginTop: 2 }}
-                            id={"class-level-field"}
-                            label={"Class Level"}
-                            variant="outlined"
-                            value={levelValue}
-                            onChange={handleLevelChange}
-                            required
-                        />
+                        ))}
+                    </Select>
+                    <TextField sx={{ marginTop: 2 }}
+                        id={"class-level-field"}
+                        label={"Class Level"}
+                        variant="outlined"
+                        value={levelValue}
+                        onChange={handleLevelChange}
+                        required
+                    />
 
-                    </FormControl>
-                    {error && <p style={{ color: "red" }}>{error}</p>}
-                    <Button sx={{margin: 1}} variant="outlined"  type="submit">
-                        Submit
-                    </Button>
-                    <Button sx={{margin: 1}} variant="outlined" onClick={handleCancelClick}>
-                        Cancel
-                    </Button>
-                </form>
-            </Box>
-        </Modal>
-    </div>)
+                </FormControl>
+                {error && <p style={{ color: "red" }}>{error}</p>}
+            </form>
+            </DialogContent>
+            <DialogActions>
+                <Button sx={{ margin: 1 }} variant="outlined" type="submit" form="add-new-character-class-form">
+                    Submit
+                </Button>
+                <Button sx={{ margin: 1 }} variant="outlined" onClick={handleCancelClick}>
+                    Cancel
+                </Button>
+            </DialogActions>
+        </Dialog>
+    </>)
 }
 
 export function ClassLevelTable(classProps: ClassLevelFieldProps) {
-    const charClass: CharacterClass[] = classProps.pageProps.formData.classes
+    const rows = classProps.pageProps.formData?.classes || [];
+
+    const handleDelete = (id : string) => {
+
+        classProps.pageProps.setFormData((prev) => {
+            if(!prev) return prev
+            return {...prev, classes: prev.classes.filter(classItems => classItems.className !== id)}
+        })
+    }
+
     const columns: GridColDef[] = [
         { field: "className", headerName: "Class Name", flex: 1 },
         { field: "level", headerName: "Level", flex: 1, editable: true },
-        { field: "comments", headerName: "Notes", flex: 1 }
+        {
+            field: "delete",
+            headerName: "Delete",
+            sortable: false,
+            renderCell: (params) => (
+                <IconButton
+                    color="error"
+                    onClick={() => handleDelete(params.row.className)}
+                >
+                    <GridDeleteIcon />
+                </IconButton>
+            ),
+        },
     ];
-    const rows = charClass
 
     const handleProcessRowUpdate = (newRow: GridRowModel, oldRow: GridRowModel) => {
         const levelvalue = Number(newRow.level);

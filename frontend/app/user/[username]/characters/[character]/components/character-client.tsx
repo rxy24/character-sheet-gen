@@ -7,8 +7,9 @@ import { Container, Grid, Box } from "@mui/material";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { AbilityScore, Armour, Character, CharacterDataProps, CharacterLevelDataProps, Equipments, HitPoints, SaveScores } from "./character-models";
 import { calculate_ability_score_modifiers, calculate_proficiency_bonus, calculate_save_score_modifiers, character_level_calculation } from './character-logic'
-import { ClassListDataProps, ClassModel } from "./class-models";
+import { ClassModel } from "./class-models";
 import { fetchAllClass } from "@/app/libs/class-data";
+import { PROFICIENCY_BONUS_FIELD } from "@/app/libs/constants";
 
 const queryClient = new QueryClient()
 
@@ -84,22 +85,22 @@ export function CharacterGeneralInfoAdditionalAbilities(props: CharacterDataProp
 
     useEffect(() => {
         const profValue = props.formData.characterAdditionalScores.find(
-            prof => prof.description === "Proficiency Bonus"
+            prof => prof.description === PROFICIENCY_BONUS_FIELD
         )?.value;
         
-        if (profValue === undefined || profValue === proficiencyCalc) return; // safety check
+        if (profValue === undefined || profValue === proficiencyCalc) return;
 
         props.setFormData(prev => ({
             ...prev!,
             characterAdditionalScores: prev!.characterAdditionalScores.map(charClass =>
-                charClass.description === "Proficiency Bonus"
+                charClass.description === PROFICIENCY_BONUS_FIELD
                     ? { ...charClass, value: proficiencyCalc }
                     : charClass
             ),
         }));
     }, [
-        props.formData.characterAdditionalScores, // array reference as dependency
-        proficiencyCalc,                          // include the new computed value
+        props.formData.characterAdditionalScores,
+        proficiencyCalc,
     ]);
 
 
