@@ -20,7 +20,7 @@
             "type": "node-terminal",
             "request": "launch",
             "command": "npm run dev -- --inspect",
-            "cwd" :"${workspaceFolder}/frontend"
+            "cwd": "${workspaceFolder}/frontend"
         },
         {
             "name": "Next.js: debug client-side",
@@ -37,7 +37,7 @@
             "pathMappings": [
                 {
                     "url": "webpack://_N_E",
-                    "path": "${workspaceFolder}"
+                    "path": "${workspaceFolder}/frontend"
                 }
             ]
         },
@@ -45,7 +45,7 @@
             "name": "Next.js: debug full stack",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+            "program": "${workspaceFolder}/frontend/node_modules/next/dist/bin/next",
             "runtimeArgs": [
                 "--inspect"
             ],
@@ -53,13 +53,16 @@
                 "<node_internals>/**"
             ],
             "serverReadyAction": {
-                "action": "debugWithEdge",
-                "killOnServerStop": true,
-                "pattern": "- Local:.+(https?://.+)",
-                "uriFormat": "%s",
-                "webRoot": "${workspaceFolder}"
+                // "action": "debugWithEdge",
+                // "killOnServerStop": true,
+                // "pattern": "- Local:.+(https?://.+)",
+                // "uriFormat": "%s",
+                // "webRoot": "${workspaceFolder}"
+                "pattern": "started server on .*:(\\d+)",
+                "uriFormat": "http://localhost:%s",
+                "action": "openExternally"
             },
-            "cwd" :"${workspaceFolder}/frontend"
+            "cwd": "${workspaceFolder}/frontend"
         }
     ]
 }
