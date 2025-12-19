@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HitPoints(BaseModel):
@@ -28,22 +28,24 @@ class CharacterClass(BaseModel):
     level: int
 
 
-class Armour(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+class Effect(BaseModel):
     name: str
-    armourClass: int
+    description: str
+    value: str
 
 
-class Equipment(BaseModel):
+class InventoryItem(BaseModel):
     model_config = ConfigDict(extra="ignore")
     name: str
-    hit: int
-    attackNum: int
-    damage: str
-    range: Optional[str]
+    description: str
     type: str
-    notes: Optional[str] = None
-    ammoRemaining: Optional[int] = None
+
+    isActive: Optional[bool] = None
+    weight: Optional[str] = ""
+    value: Optional[str] = ""
+    notes: Optional[str] = ""
+
+    effects: List[Effect] = Field(default_factory=list)
 
 class CharacterMisc(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -55,17 +57,20 @@ class CharacterAdditionalScores(BaseModel):
     description: Optional[str]
     value: Optional[int]
 
+class ArmourClass(BaseModel):
+    armourClassValue: int
+    tempArmourClassValue : int
+
 class Character(BaseModel):
     model_config = ConfigDict(extra="ignore")
     characterName: str
     buildOwner: str
     hitPoints: HitPoints
-    armourClass: int
+    armourClass: ArmourClass
     abilityScores: List[AbilityScore]
     savingThrows: List[SavingThrow]
     classes: List[CharacterClass]
-    armour: List[Armour]
-    equipments: Optional[List[Equipment]] = None
+    inventory: Optional[List[InventoryItem]] = None
     characterMisc: Optional[List[CharacterMisc]] = None
     characterAdditionalScores : Optional[List[CharacterAdditionalScores]] = None
 
@@ -80,8 +85,6 @@ def character_filter(
     # Nested filters (optional)
     abilityName: Optional[str] = None,
     className: Optional[str] = None,
-    armourName: Optional[str] = None,
-    equipmentName: Optional[str] = None,
 ):
     """
     Produces a dict of provided (non-None) filters.

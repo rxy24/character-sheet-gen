@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { fetchCharacter } from "../../../../../libs/character-data";
-import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField, EquipmentTable, ArmourTable, ClassLevelTable, AddNewCharacterClassModal } from './character-fields';
+import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField, InventoryTable, ClassLevelTable, AddNewCharacterClassModal, ActiveInventoryTable } from './character-fields';
 import { Container, Grid, Box } from "@mui/material";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { AbilityScore, Armour, Character, CharacterDataProps, CharacterLevelDataProps, Equipments, HitPoints, SaveScores } from "./character-models";
-import { calculate_ability_score_modifiers, calculate_proficiency_bonus, calculate_save_score_modifiers, character_level_calculation } from './character-logic'
+import { calculate_ability_score_modifiers, calculate_armour_class, calculate_proficiency_bonus, calculate_save_score_modifiers, character_level_calculation } from './character-logic'
 import { ClassModel } from "./class-models";
 import { fetchAllClass } from "@/app/libs/class-data";
 import { PROFICIENCY_BONUS_FIELD } from "@/app/libs/constants";
@@ -44,8 +44,9 @@ function CharacterClientContent({character} : {character : string}) {
             <AbilitySaveScoresInfo formData={formData} setFormData={setFormData} />
             <CharacterGeneralInfoAdditionalAbilities formData={formData} setFormData={setFormData} />
             <SectionDivider sectionText="Combat" />
-            <CombatInfo charModel={formData} />
-            <CombatEquipmentTableInfo charModel={formData} />
+            <CombatInfo formData={formData} setFormData={setFormData} />
+            <ActiveInventoryTableInfo formData={formData} setFormData={setFormData} />
+            <InventoryTableInfo formData={formData} setFormData={setFormData}/>
         </Container>
     );
 }
@@ -207,9 +208,27 @@ export function AbilitySaveScoresInfo(props: CharacterDataProps) {
     </Box>
 }
 
-export function CombatInfo({ charModel }: { charModel: any }) {
-    const hpModel: HitPoints = charModel.hitPoints
-    const armourClassValue: number = charModel.armourClass
+export function CombatInfo(props: CharacterDataProps) {
+    const hpModel: HitPoints = props.formData.hitPoints
+
+    useEffect(() => {
+        const newAC: number = calculate_armour_class(props.formData)
+        const currAc: number = props.formData.armourClass.armourClassValue
+
+        if (newAC === currAc) return
+
+        props.setFormData(prev => {
+            if (!prev) return prev
+
+            return {
+                ...prev,
+                armourClass: {
+                    ...prev.armourClass,
+                    armourClassValue: newAC
+                }
+            }
+        });
+    }, [props.formData.armourClass, props.formData.inventory])
 
     return <Box sx={{ margin: 2 }}>
         <Grid container spacing={2}>
@@ -218,25 +237,37 @@ export function CombatInfo({ charModel }: { charModel: any }) {
 
             </Grid>
             <Grid size={{ xs: 12, sm: 5 }}>
-                <ArmourClassInfo armourClass={armourClassValue} />
+                <ArmourClassInfo formData={props.formData} setFormData={props.setFormData} />
             </Grid>
         </Grid>
     </Box>
 }
 
-export function CombatEquipmentTableInfo({ charModel }: { charModel: any }) {
-    const equipmentList: Equipments[] = charModel.equipments
-    const armours: Armour[] = charModel.armour
-
+export function ActiveInventoryTableInfo(props : CharacterDataProps){
     return <Box sx={{ margin: 2, width: '100%', overflowX: 'auto' }}>
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <SectionDivider sectionText="Equipments" />
-                <EquipmentTable equipments={equipmentList} />
+        <Grid container
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+            spacing={2}>
+            <Grid size={{ xs: 12, sm: 12 }}>
+                <SectionDivider sectionText="Active Inventory" />
+                <ActiveInventoryTable formData={props.formData} setFormData={props.setFormData} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <SectionDivider sectionText="Armour" />
-                <ArmourTable armours={armours} />
+        </Grid>
+    </Box>
+}
+
+export function InventoryTableInfo(props : CharacterDataProps) {
+    return <Box sx={{ margin: 2, width: '100%', overflowX: 'auto' }}>
+        <Grid container 
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+        spacing={2}>
+            <Grid size={{ xs: 12, sm: 12 }}>
+                <SectionDivider sectionText="Inventory" />
+                <InventoryTable formData={props.formData} setFormData={props.setFormData} />
             </Grid>
         </Grid>
     </Box>

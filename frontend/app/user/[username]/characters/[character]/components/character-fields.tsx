@@ -4,8 +4,8 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider
 import { DataGrid, GridColDef, GridCellParams, GridRowModel, GridDeleteIcon } from '@mui/x-data-grid';
 import CheckIcon from '@mui/icons-material/FiberManualRecord';
 import { useEffect, useState } from "react";
-import { AbilityScore, AbilityScoreParams, Armour, CharacterClass, CharacterLevelDataProps, CharacterMiscFieldParams, ClassLevelFieldProps, Equipments, HitPoints, SaveScores, SaveScoresParam } from "./character-models";
-import { Add } from "@mui/icons-material";
+import { AbilityScore, AbilityScoreParams, Armour, CharacterClass, CharacterDataProps, CharacterLevelDataProps, CharacterMiscFieldParams, ClassLevelFieldProps, Equipments, HitPoints, InventoryItem, SaveScores, SaveScoresParam } from "./character-models";
+import { Add, CheckBox, CheckBoxOutlineBlank, Inventory } from "@mui/icons-material";
 import React from "react";
 import { useAlert } from "../../../components/alert-provider";
 
@@ -200,7 +200,7 @@ export function CharacterSaveTable(charProps: SaveScoresParam) {
         setRows((prev) =>
             prev.map((row) =>
                 row.abilityName === params.id
-                    ? { ...row, hasAdvantage: !row.hasAdvantage } // <-- toggles boolean in state
+                    ? { ...row, hasAdvantage: !row.hasAdvantage }
                     : row
             )
         )
@@ -229,7 +229,6 @@ export function CharacterSaveTable(charProps: SaveScoresParam) {
             }
             : prev
         );
-        console.log("newRow")
         return newRow
     }
     return (
@@ -319,7 +318,7 @@ export function HealthPointInfo({ hpModel }: { hpModel: HitPoints }) {
     )
 }
 
-export function ArmourClassInfo({ armourClass }: { armourClass: number }) {
+export function ArmourClassInfo(props : CharacterDataProps) {
 
     return (
         <div>
@@ -334,22 +333,21 @@ export function ArmourClassInfo({ armourClass }: { armourClass: number }) {
                 <Box width={100}>
                     <TextField
                         fullWidth
-                        disabled={false}
+                        disabled={true}
                         id="current-armour-class"
                         label="AC"
                         variant="standard"
-                        defaultValue={armourClass}
+                        value={props.formData.armourClass.armourClassValue}
                         sx={{ paddingRight: 1, paddingBottom: 1 }}
-                    // style={{ width: "px" }}
                     />
                 </Box>
                 <Box width={100}>
                     <TextField
-                        disabled={false}
+                        disabled={true}
                         id="temp-armour-class"
                         label="Temp AC"
                         variant="standard"
-                        defaultValue={0}
+                        value={props.formData.armourClass.tempArmourClassValue}
                     />
                 </Box>
 
@@ -359,18 +357,23 @@ export function ArmourClassInfo({ armourClass }: { armourClass: number }) {
     )
 }
 
-export function EquipmentTable({ equipments }: { equipments: Equipments[] }) {
-    const columns: GridColDef[] = [
+export function ActiveInventoryTable(props : CharacterDataProps){
+        const columns: GridColDef[] = [
         { field: "name", headerName: "Name", width: 200 },
-        { field: "hit", headerName: "Hit", width: 200 },
-        { field: "damage", headerName: "Damage", width: 200 },
-        { field: "range", headerName: "Range", width: 200 },
+        { field: "description", headerName: "Description", width: 200 },
         { field: "type", headerName: "Type", width: 200 },
         { field: "notes", headerName: "Notes", width: 200 },
+        { field: "moreDetails", headerName: "Details", width: 200 }
 
     ];
 
-    const [rows, setRows] = useState(equipments)
+    const filteredInventory : InventoryItem[] = props.formData.inventory.filter(item => item.isActive)
+    const [rows, setRows] = useState(filteredInventory)
+
+    useEffect(()=>{
+        setRows(props.formData.inventory.filter(item => item.isActive))
+    }, [props.formData.inventory])
+
     return (
         <div>
             <DataGrid
@@ -387,13 +390,42 @@ export function EquipmentTable({ equipments }: { equipments: Equipments[] }) {
     )
 }
 
-export function ArmourTable({ armours }: { armours: Armour[] }) {
+export function InventoryTable(props : CharacterDataProps) {
     const columns: GridColDef[] = [
-        { field: "name", headerName: "Name", flex: 1 },
-        { field: "armourClass", headerName: "AC", flex: 1 },
+        { field: "name", headerName: "Name", width: 200 },
+        { field: "description", headerName: "Description", width: 200 },
+        { field: "type", headerName: "Type", width: 200 },
+        { field: "isActive", headerName: "Active Equipment", flex: 1, 
+            sortable: false,
+            editable: false,
+            renderCell: (params) => {
+                return params.value ? <CheckBox/> : <CheckBoxOutlineBlank />;
+            }
+        },
+        { field: "moreDetails", headerName: "Details", width: 200 }
+
     ];
 
-    const [rows, setRows] = useState(armours)
+    const [rows, setRows] = useState(props.formData.inventory)
+
+        const handleCellClick = (params: GridCellParams) => {
+        if (params.field !== "isActive") return;
+
+        setRows((prev) =>
+            prev.map((row) =>
+                row.name === params.id
+                    ? { ...row, isActive: !row.isActive }
+                    : row
+            )
+        )
+        props.setFormData(prev => prev
+            ? {
+                ...prev,
+                inventory : prev.inventory.map(item => item.name === params.id ? {...item, isActive: !item.isActive} : item)
+            }
+            : prev
+        );
+    };
     return (
         <div>
             <DataGrid
@@ -401,11 +433,11 @@ export function ArmourTable({ armours }: { armours: Armour[] }) {
                 rows={rows}
                 columns={columns}
                 hideFooter={true}
+                onCellClick={handleCellClick}
                 disableColumnMenu
                 disableColumnSelector
                 disableRowSelectionOnClick
-                density="compact"
-                autoHeight
+                disableColumnResize={false}
             />
         </div>
     )

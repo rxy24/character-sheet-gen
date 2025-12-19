@@ -45,6 +45,30 @@ export interface HitPoints {
     currentHp: number
 }
 
+export interface ArmourClass {
+    armourClassValue: number
+    tempArmourClassValue: number
+}
+
+export interface Effect {
+  name: string;
+  description: string;
+  value: string;
+}
+
+export interface InventoryItem {
+  name: string;
+  description: string;
+  type: string;
+
+  isActive?: boolean;
+  weight?: string;
+  value?: string;
+  notes?: string;
+
+  effects: Effect[];
+}
+
 export interface Equipments {
     name: string;
     hit: number;
@@ -78,12 +102,11 @@ export interface Character {
     passiveInvestigation: number;
     passivePerception: number;
     hitPoints: HitPoints;
-    armourClass: number;
+    armourClass: ArmourClass;
     abilityScores: AbilityScore[];
     savingThrows: SaveScores[];
     classes: CharacterClass[];
-    armour: Armour[];
-    equipments?: Equipments[] | null;
+    inventory: InventoryItem[]
     characterMisc: CharacterMisc[];
     characterAdditionalScores : CharacterAdditionalScores[];
 }
