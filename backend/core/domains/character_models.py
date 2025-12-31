@@ -61,6 +61,18 @@ class ArmourClass(BaseModel):
     armourClassValue: int
     tempArmourClassValue : int
 
+class CharacterSpells(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    spellName: str
+    spellLevel: int
+    school: str
+    castingTime: str
+    range: str
+    saves: Optional[str] = None
+    fullDescription: str
+    isActive: Optional[bool] = None
+    effects: List[Effect]
+
 class Character(BaseModel):
     model_config = ConfigDict(extra="ignore")
     characterName: str
@@ -73,6 +85,7 @@ class Character(BaseModel):
     inventory: Optional[List[InventoryItem]] = None
     characterMisc: Optional[List[CharacterMisc]] = None
     characterAdditionalScores : Optional[List[CharacterAdditionalScores]] = None
+    characterSpells : Optional[List[CharacterSpells]] = None
 
 class CharacterList(BaseModel):
     data : list[Character]

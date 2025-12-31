@@ -94,6 +94,30 @@ export interface Armour {
     armourClass: number;
 }
 
+export interface Spell {
+  id: string;
+  spellName: string;
+  spellLevel: number;
+  school: string;
+  castingTime: string;
+  range: string;
+  saves?: string;
+  fullDescription: string;
+  supportedClass: string[];
+}
+
+export interface CharacterSpells {
+    spellName: string;
+    spellLevel: number;
+    school: string;
+    castingTime: string;
+    range: string;
+    saves?: string;
+    fullDescription: string;
+    isActive?: Boolean 
+    effects : Effect[]
+}
+
 export interface Character {
     characterName: string;
     buildOwner: string;
@@ -109,6 +133,7 @@ export interface Character {
     inventory: InventoryItem[]
     characterMisc: CharacterMisc[];
     characterAdditionalScores : CharacterAdditionalScores[];
+    characterSpells: CharacterSpells[]
 }
 
 export interface ClassLevelFieldProps {
@@ -118,6 +143,11 @@ export interface ClassLevelFieldProps {
 export interface CharacterDataProps {
     formData: Character;
     setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
+}
+
+export interface SpellDataProps {
+    formData: Spell;
+    setFormData: React.Dispatch<React.SetStateAction<Spell | null>>;
 }
 
 export interface CharacterLevelDataProps {

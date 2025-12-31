@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchCharacter } from "../../../../../libs/character-data";
-import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField, InventoryTable, ClassLevelTable, AddNewCharacterClassModal, ActiveInventoryTable } from './character-fields';
+import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField, ClassLevelTable, AddNewCharacterClassModal } from './character-fields';
 import { Container, Grid, Box } from "@mui/material";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { AbilityScore, Armour, Character, CharacterDataProps, CharacterLevelDataProps, Equipments, HitPoints, SaveScores } from "./character-models";
@@ -10,6 +10,8 @@ import { calculate_ability_score_modifiers, calculate_armour_class, calculate_pr
 import { ClassModel } from "./class-models";
 import { fetchAllClass } from "@/app/libs/class-data";
 import { PROFICIENCY_BONUS_FIELD } from "@/app/libs/constants";
+import { ActiveInventoryTableInfo, InventoryTableInfo } from "./character-inventory";
+import { SpellTableInfo } from "./character-spell";
 
 const queryClient = new QueryClient()
 
@@ -47,6 +49,7 @@ function CharacterClientContent({character} : {character : string}) {
             <CombatInfo formData={formData} setFormData={setFormData} />
             <ActiveInventoryTableInfo formData={formData} setFormData={setFormData} />
             <InventoryTableInfo formData={formData} setFormData={setFormData}/>
+            <SpellTableInfo formData={formData} setFormData={setFormData} />
         </Container>
     );
 }
@@ -238,36 +241,6 @@ export function CombatInfo(props: CharacterDataProps) {
             </Grid>
             <Grid size={{ xs: 12, sm: 5 }}>
                 <ArmourClassInfo formData={props.formData} setFormData={props.setFormData} />
-            </Grid>
-        </Grid>
-    </Box>
-}
-
-export function ActiveInventoryTableInfo(props : CharacterDataProps){
-    return <Box sx={{ margin: 2, width: '100%', overflowX: 'auto' }}>
-        <Grid container
-            direction="column"
-            alignItems="center"
-            justifyContent="center"
-            spacing={2}>
-            <Grid size={{ xs: 12, sm: 12 }}>
-                <SectionDivider sectionText="Active Inventory" />
-                <ActiveInventoryTable formData={props.formData} setFormData={props.setFormData} />
-            </Grid>
-        </Grid>
-    </Box>
-}
-
-export function InventoryTableInfo(props : CharacterDataProps) {
-    return <Box sx={{ margin: 2, width: '100%', overflowX: 'auto' }}>
-        <Grid container 
-            direction="column"
-            alignItems="center"
-            justifyContent="center"
-        spacing={2}>
-            <Grid size={{ xs: 12, sm: 12 }}>
-                <SectionDivider sectionText="Inventory" />
-                <InventoryTable formData={props.formData} setFormData={props.setFormData} />
             </Grid>
         </Grid>
     </Box>
