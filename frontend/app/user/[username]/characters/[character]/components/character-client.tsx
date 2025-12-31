@@ -11,6 +11,7 @@ import { ClassModel } from "./class-models";
 import { fetchAllClass } from "@/app/libs/class-data";
 import { PROFICIENCY_BONUS_FIELD } from "@/app/libs/constants";
 import { ActiveInventoryTableInfo, InventoryTableInfo } from "./character-inventory";
+import { SpellTableInfo } from "./character-spell";
 
 const queryClient = new QueryClient()
 
@@ -48,6 +49,7 @@ function CharacterClientContent({character} : {character : string}) {
             <CombatInfo formData={formData} setFormData={setFormData} />
             <ActiveInventoryTableInfo formData={formData} setFormData={setFormData} />
             <InventoryTableInfo formData={formData} setFormData={setFormData}/>
+            <SpellTableInfo formData={formData} setFormData={setFormData} />
         </Container>
     );
 }

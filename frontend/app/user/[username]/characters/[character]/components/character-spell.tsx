@@ -1,49 +1,48 @@
 import { DataGrid, GridCellParams, GridColDef } from "@mui/x-data-grid";
-import { CharacterDataProps, Effect, InventoryItem } from "./character-models";
-import { useEffect, useState } from "react";
+import { CharacterDataProps, CharacterSpells, Effect } from "./character-models";
 import { Add, CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, InputLabel, Stack, TextField, Typography } from "@mui/material";
-import { SectionDivider } from "./character-fields";
-import { useAlert } from "../../../components/alert-provider";
+import { useEffect, useState } from "react";
 import React from "react";
+import { useAlert } from "../../../components/alert-provider";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, Stack, TextField, Typography } from "@mui/material";
+import { SectionDivider } from "./character-fields";
 
-
-function AddInventoryButton(props: CharacterDataProps) {
+function AddSpellsButton(props: CharacterDataProps) {
     const [open, setOpen] = React.useState(false);
     const [error, setError] = useState<string | null>(null);
     const { showAlert } = useAlert();
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    const [item, setItem] = useState<InventoryItem>({
-        name: "",
-        description: "",
+    const [spell, setSpell] = useState<CharacterSpells>({
+        spellName: "",
+        spellLevel: 0,
         isActive: false,
         effects: [],
-        type: "",
-        notes: "",
-        value: "",
-        weight: ""
+        school: "",
+        castingTime: "",
+        range: "",
+        fullDescription: ""
     });
 
     const handleCancelClick = () => {
         setError(null)
         setOpen(false)
-        setItem({
-            name: "",
-            description: "",
+        setSpell({
+            spellName: "",
+            spellLevel: 0,
             isActive: false,
             effects: [],
-            type: "",
-            notes: "",
-            value: "",
-            weight: ""
+            school: "",
+            castingTime: "",
+            range: "",
+            fullDescription: ""
         })
     }
 
     // Add a new effect row
     const addEffect = () => {
-        setItem((prev) => ({
+        setSpell((prev) => ({
             ...prev,
             effects: [...prev.effects, { name: "", value: "", description: "" }],
         }));
@@ -51,7 +50,7 @@ function AddInventoryButton(props: CharacterDataProps) {
 
     // Remove an effect row
     const removeEffect = (index: number) => {
-        setItem((prev) => ({
+        setSpell((prev) => ({
             ...prev,
             effects: prev.effects.filter((_, i) => i !== index),
         }));
@@ -59,7 +58,7 @@ function AddInventoryButton(props: CharacterDataProps) {
 
     // Update an effect row
     const updateEffect = (index: number, field: keyof Effect, value: string | number) => {
-        setItem((prev) => {
+        setSpell((prev) => {
             const effects = [...prev.effects];
             effects[index] = { ...effects[index], [field]: value };
             return { ...prev, effects };
@@ -72,31 +71,31 @@ function AddInventoryButton(props: CharacterDataProps) {
         props.setFormData(prev => prev
             ? {
                 ...prev,
-                inventory: [...prev.inventory, item]
+                characterSpells: [...prev.characterSpells, spell]
             }
             : prev
         );
         console.log(props.formData)
-        setItem({
-            name: "",
-            description: "",
+        setSpell({
+            spellName: "",
+            spellLevel: 0,
             isActive: false,
             effects: [],
-            type: "",
-            notes: "",
-            value: "",
-            weight: ""
+            school: "",
+            castingTime: "",
+            range: "",
+            fullDescription: ""
         })
         setOpen(false)
 
-        setTimeout(() => showAlert('success', 'Item Successfully Added to Inventory'), 0);
+        setTimeout(() => showAlert('success', 'Spell is Successfully Added to Spell List'), 0);
     }
 
     return (
         <>
             <Box display="flex" justifyContent="center" mt={2}>
                 <Button onClick={handleOpen} variant="outlined" startIcon={<Add />}>
-                    Add New Item
+                    Add New Spell
                 </Button>
             </Box>
             <Dialog
@@ -113,17 +112,17 @@ function AddInventoryButton(props: CharacterDataProps) {
                     },
                 }}
             >
-                <DialogTitle>Add new Item</DialogTitle>
+                <DialogTitle>Add new Spell</DialogTitle>
                 <DialogContent>
-                    <form id="add-new-item-form" onSubmit={handleSubmit}>
+                    <form id="add-new-spell-form" onSubmit={handleSubmit}>
                         <FormControl sx={{ marginTop: 2 }} fullWidth required>
                             <Stack spacing={2} mb={1} >
-                                <TextField label="Item name" id="item-name" required  onChange={(e) => setItem({ ...item, name: e.target.value })}/>
-                                <TextField label="Item Description" id="item-description" onChange={(e) => setItem({ ...item, description: e.target.value })} />
-                                <TextField label="Item Type" id="item-type" required onChange={(e) => setItem({ ...item, type: e.target.value })}/>
-                                <TextField label="Item Weight" id="item-weight" onChange={(e) => setItem({ ...item, weight: e.target.value })}/>
-                                <TextField label="Item Value" id="item-value" onChange={(e) => setItem({ ...item, value: e.target.value })}/>
-                                <TextField label="Item Notes" id="item-notes" onChange={(e) => setItem({ ...item, notes: e.target.value })}/>
+                                <TextField label="Spell Name" id="spell-name" required onChange={(e) => setSpell({ ...spell, spellName: e.target.value })} />
+                                <TextField label="Spell Description" id="spell-description" onChange={(e) => setSpell({ ...spell, fullDescription: e.target.value })} />
+                                <TextField label="Spell School" id="spell-school" required onChange={(e) => setSpell({ ...spell, school: e.target.value })} />
+                                <TextField label="Spell Casting Time" id="spell-casting-time" onChange={(e) => setSpell({ ...spell, castingTime: e.target.value })} />
+                                <TextField label="Spell Range" id="spell-range" onChange={(e) => setSpell({ ...spell, range: e.target.value })} />
+                                <TextField label="Spell Level" id="spell-level" onChange={(e) => setSpell({ ...spell, spellName: e.target.value })} />
                             </Stack>
                             <Divider />
                             <Typography >
@@ -132,8 +131,8 @@ function AddInventoryButton(props: CharacterDataProps) {
                             <Typography >
                                 Add effects to allow default calculations of specific fields.
                             </Typography>
-                            <Stack spacing={2} style={{ maxHeight: 200, overflowY: "auto", paddingTop: 10}}>
-                                {item.effects.map((effect, index) => (
+                            <Stack spacing={2} style={{ maxHeight: 200, overflowY: "auto", paddingTop: 10 }}>
+                                {spell.effects.map((effect, index) => (
                                     <Stack key={index} direction="row" spacing={2} alignItems="center" >
                                         <TextField
                                             label="Effect Name"
@@ -168,7 +167,7 @@ function AddInventoryButton(props: CharacterDataProps) {
                     {error && <p style={{ color: "red" }}>{error}</p>}
                 </DialogContent>
                 <DialogActions>
-                    <Button sx={{ margin: 1 }} variant="outlined" type="submit" form="add-new-item-form">
+                    <Button sx={{ margin: 1 }} variant="outlined" type="submit" form="add-new-spell-form">
                         Submit
                     </Button>
                     <Button sx={{ margin: 1 }} variant="outlined" onClick={handleCancelClick}>
@@ -180,46 +179,15 @@ function AddInventoryButton(props: CharacterDataProps) {
     )
 }
 
-function ActiveInventoryTable(props: CharacterDataProps) {
+function SpellTable(props: CharacterDataProps) {
     const columns: GridColDef[] = [
-        { field: "name", headerName: "Name", width: 200 },
-        { field: "description", headerName: "Description", width: 200 },
-        { field: "type", headerName: "Type", width: 200 },
-        { field: "notes", headerName: "Notes", width: 200 },
-        { field: "moreDetails", headerName: "Details", width: 200 }
-
-    ];
-
-    const filteredInventory: InventoryItem[] = props.formData.inventory.filter(item => item.isActive)
-    const [rows, setRows] = useState(filteredInventory)
-
-    useEffect(() => {
-        setRows(props.formData.inventory.filter(item => item.isActive))
-    }, [props.formData.inventory])
-
-    return (
-        <div>
-            <DataGrid
-                getRowId={(row) => row.name}
-                rows={rows}
-                columns={columns}
-                hideFooter={true}
-                disableColumnMenu
-                disableColumnSelector
-                disableRowSelectionOnClick
-                disableColumnResize={false}
-            />
-        </div>
-    )
-}
-
-function InventoryTable(props: CharacterDataProps) {
-    const columns: GridColDef[] = [
-        { field: "name", headerName: "Name", width: 200 },
-        { field: "description", headerName: "Description", width: 200 },
-        { field: "type", headerName: "Type", width: 200 },
+        { field: "spellName", headerName: "Spell name", width: 100 },
+        { field: "spellLevel", headerName: "Spell level", width: 100 },
+        { field: "castingTime", headerName: "Casting time", width: 100 },
+        { field: "range", headerName: "Range", width: 100 },
+        { field: "fullDescription", headerName: "Description", width: 300 },
         {
-            field: "isActive", headerName: "Active Equipment", flex: 1,
+            field: "isActive", headerName: "Activate Spell", flex: 1,
             sortable: false,
             editable: false,
             renderCell: (params) => {
@@ -230,18 +198,18 @@ function InventoryTable(props: CharacterDataProps) {
 
     ];
 
-    const [rows, setRows] = useState(props.formData.inventory)
+    const [rows, setRows] = useState(props.formData.characterSpells)
 
     useEffect(() => {
-        setRows(props.formData.inventory)
-    }, [props.formData.inventory])
+        setRows(props.formData.characterSpells)
+    }, [props.formData.characterSpells])
 
     const handleCellClick = (params: GridCellParams) => {
         if (params.field !== "isActive") return;
 
         setRows((prev) =>
             prev.map((row) =>
-                row.name === params.id
+                row.spellName === params.id
                     ? { ...row, isActive: !row.isActive }
                     : row
             )
@@ -257,7 +225,7 @@ function InventoryTable(props: CharacterDataProps) {
     return (
         <div>
             <DataGrid
-                getRowId={(row) => row.name}
+                getRowId={(row) => row.spellName}
                 rows={rows}
                 columns={columns}
                 hideFooter={true}
@@ -271,7 +239,7 @@ function InventoryTable(props: CharacterDataProps) {
     )
 }
 
-export function ActiveInventoryTableInfo(props: CharacterDataProps) {
+export function SpellTableInfo(props: CharacterDataProps) {
     return <Box sx={{ margin: 2, width: '100%', overflowX: 'auto' }}>
         <Grid container
             direction="column"
@@ -279,24 +247,9 @@ export function ActiveInventoryTableInfo(props: CharacterDataProps) {
             justifyContent="center"
             spacing={2}>
             <Grid size={{ xs: 12, sm: 12 }}>
-                <SectionDivider sectionText="Active Inventory" />
-                <ActiveInventoryTable formData={props.formData} setFormData={props.setFormData} />
-            </Grid>
-        </Grid>
-    </Box>
-}
-
-export function InventoryTableInfo(props: CharacterDataProps) {
-    return <Box sx={{ margin: 2, width: '100%', overflowX: 'auto' }}>
-        <Grid container
-            direction="column"
-            alignItems="center"
-            justifyContent="center"
-            spacing={2}>
-            <Grid size={{ xs: 12, sm: 12 }}>
-                <SectionDivider sectionText="Inventory" />
-                <InventoryTable formData={props.formData} setFormData={props.setFormData} />
-                <AddInventoryButton formData={props.formData} setFormData={props.setFormData} />
+                <SectionDivider sectionText="Spells" />
+                <SpellTable formData={props.formData} setFormData={props.setFormData} />
+                <AddSpellsButton formData={props.formData} setFormData={props.setFormData} />
             </Grid>
         </Grid>
     </Box>
