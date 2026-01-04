@@ -26,6 +26,7 @@ class CharacterClass(BaseModel):
     model_config = ConfigDict(extra="ignore")
     className: str
     level: int
+    isMain: bool
 
 
 class Effect(BaseModel):
@@ -73,6 +74,13 @@ class CharacterSpells(BaseModel):
     isActive: Optional[bool] = None
     effects: List[Effect]
 
+class CharacterSpellSlots(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    spellLevel: int
+    slotsRemaining: int
+    slotsTotal: int
+    additionalSlots: int
+
 class Character(BaseModel):
     model_config = ConfigDict(extra="ignore")
     characterName: str
@@ -86,6 +94,7 @@ class Character(BaseModel):
     characterMisc: Optional[List[CharacterMisc]] = None
     characterAdditionalScores : Optional[List[CharacterAdditionalScores]] = None
     characterSpells : Optional[List[CharacterSpells]] = None
+    characterSpellSlotInfo : Optional[List[CharacterSpellSlots]] = None
 
 class CharacterList(BaseModel):
     data : list[Character]

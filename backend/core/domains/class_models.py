@@ -35,8 +35,6 @@ class ClassFeatureSpellNumbers(BaseModel):
 class ClassFeatureNumbers(BaseModel):
     model_config = ConfigDict(extra="ignore")
     level : int
-    proficiencyBonus : Optional[int]
-    channelDivinity : Optional[int]
     numOfSpells : list[ClassFeatureSpellNumbers]
 
 class ClassModel(BaseModel):

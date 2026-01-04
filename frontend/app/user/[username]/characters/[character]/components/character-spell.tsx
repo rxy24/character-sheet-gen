@@ -1,10 +1,10 @@
 import { DataGrid, GridCellParams, GridColDef } from "@mui/x-data-grid";
-import { CharacterDataProps, CharacterSpells, Effect } from "./character-models";
-import { Add, CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
+import { CharacterDataProps, CharacterSpelllDataProps, CharacterSpells, Effect } from "./character-models";
+import { Add, CheckBox, CheckBoxOutlineBlank, Remove } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import React from "react";
 import { useAlert } from "../../../components/alert-provider";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, Stack, TextField, Typography } from "@mui/material";
 import { SectionDivider } from "./character-fields";
 
 function AddSpellsButton(props: CharacterDataProps) {
@@ -122,7 +122,11 @@ function AddSpellsButton(props: CharacterDataProps) {
                                 <TextField label="Spell School" id="spell-school" required onChange={(e) => setSpell({ ...spell, school: e.target.value })} />
                                 <TextField label="Spell Casting Time" id="spell-casting-time" onChange={(e) => setSpell({ ...spell, castingTime: e.target.value })} />
                                 <TextField label="Spell Range" id="spell-range" onChange={(e) => setSpell({ ...spell, range: e.target.value })} />
-                                <TextField label="Spell Level" id="spell-level" onChange={(e) => setSpell({ ...spell, spellName: e.target.value })} />
+                                <TextField type="number" label="Spell Level" id="spell-level" onChange={(e) => setSpell({ ...spell, spellLevel: Number(e.target.value) })} inputProps={{
+                                    min: 0,
+                                    max: 10,
+                                    step: 1,
+                                }} />
                             </Stack>
                             <Divider />
                             <Typography >
@@ -239,7 +243,72 @@ function SpellTable(props: CharacterDataProps) {
     )
 }
 
-export function SpellTableInfo(props: CharacterDataProps) {
+function SpellSlotTable(props: CharacterSpelllDataProps) {
+    const columns: GridColDef[] = [
+        { field: "spellLevel", headerName: "Spell Level", headerAlign: 'center', align: 'center', flex: 1, },
+        {
+            field: "slotsRemaining",
+            headerName: "Slot Remaining",
+            headerAlign: 'center',
+            flex: 1,
+            renderCell: (params) => (
+                <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
+                    <IconButton
+                        size="small"
+                        onClick={() => updateRemainingSlots(params.row.spellLevel, -1)}
+                    >
+                        <Remove />
+                    </IconButton>
+
+                    {params.value}
+
+                    <IconButton
+                        size="small"
+                        onClick={() => updateRemainingSlots(params.row.spellLevel, 1)}
+                    >
+                        <Add />
+                    </IconButton>
+                </Stack>
+            ),
+        },
+        { field: "slotsTotal", headerName: "Total Slots", headerAlign: 'center', align: 'center', flex: 1,}
+
+    ];
+    const [rows, setRows] = useState(props.formData.characterSpellSlotInfo)
+
+    useEffect(() => {
+        setRows(props.formData.characterSpellSlotInfo)
+    }, [props.formData.characterSpellSlotInfo])
+
+    const updateRemainingSlots = (id: number, delta: number) => {
+        setRows((prev) =>
+            prev.map((row) =>
+                row.spellLevel === id
+                    ? { ...row, slotsRemaining: Math.max(0, row.slotsRemaining + delta) }
+                    : row
+            )
+        );
+    };
+
+    return (
+        <div>
+            <DataGrid
+                getRowId={(row) => row.spellLevel}
+                rows={rows}
+                columns={columns}
+                hideFooter={true}
+                disableColumnMenu
+                disableColumnSelector
+                disableRowSelectionOnClick
+                disableColumnSorting
+                disableColumnFilter
+                disableColumnResize
+            />
+        </div>
+    )
+}
+
+export function SpellTableInfo(props: CharacterSpelllDataProps) {
     return <Box sx={{ margin: 2, width: '100%', overflowX: 'auto' }}>
         <Grid container
             direction="column"
@@ -248,6 +317,11 @@ export function SpellTableInfo(props: CharacterDataProps) {
             spacing={2}>
             <Grid size={{ xs: 12, sm: 12 }}>
                 <SectionDivider sectionText="Spells" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <SpellSlotTable formData={props.formData} setFormData={props.setFormData} classListData={props.classListData} setClassListData={props.setClassListData} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 12 }}>
                 <SpellTable formData={props.formData} setFormData={props.setFormData} />
                 <AddSpellsButton formData={props.formData} setFormData={props.setFormData} />
             </Grid>

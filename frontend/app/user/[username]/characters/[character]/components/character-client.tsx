@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { fetchCharacter } from "../../../../../libs/character-data";
-import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField, ClassLevelTable, AddNewCharacterClassModal } from './character-fields';
+import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField } from './character-fields';
 import { Container, Grid, Box } from "@mui/material";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { AbilityScore, Armour, Character, CharacterDataProps, CharacterLevelDataProps, Equipments, HitPoints, SaveScores } from "./character-models";
-import { calculate_ability_score_modifiers, calculate_armour_class, calculate_proficiency_bonus, calculate_save_score_modifiers, character_level_calculation } from './character-logic'
+import { AbilityScore, Character, CharacterDataProps, HitPoints } from "./character-models";
+import { calculate_ability_score_modifiers, calculate_armour_class, calculate_proficiency_bonus, calculate_save_score_modifiers, character_level_calculation } from './character-logic';
 import { ClassModel } from "./class-models";
 import { fetchAllClass } from "@/app/libs/class-data";
 import { PROFICIENCY_BONUS_FIELD } from "@/app/libs/constants";
 import { ActiveInventoryTableInfo, InventoryTableInfo } from "./character-inventory";
 import { SpellTableInfo } from "./character-spell";
+import { CharacterLevelTableModule } from "./character-levels";
 
 const queryClient = new QueryClient()
 
@@ -49,7 +50,7 @@ function CharacterClientContent({character} : {character : string}) {
             <CombatInfo formData={formData} setFormData={setFormData} />
             <ActiveInventoryTableInfo formData={formData} setFormData={setFormData} />
             <InventoryTableInfo formData={formData} setFormData={setFormData}/>
-            <SpellTableInfo formData={formData} setFormData={setFormData} />
+            <SpellTableInfo formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
         </Container>
     );
 }
@@ -124,24 +125,6 @@ export function CharacterGeneralInfoAdditionalAbilities(props: CharacterDataProp
             </Grid>
             <Grid size={{ xs: 6, sm: 2 }}>
                 <CharacterMiscNumberField label={"Movement"} disabled={true} props={props}/>
-            </Grid>
-        </Grid>
-    </Box>
-}
-
-export function CharacterLevelTableModule(charLevelProps: CharacterLevelDataProps) {
-    return <Box sx={{ margin: 2 }}>
-        <Grid
-            container
-            direction="column"
-            alignItems="center"
-            justifyContent="center"
-        >
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <SectionDivider sectionText="Class Info" />
-                <ClassLevelTable pageProps={charLevelProps}/>
-                <AddNewCharacterClassModal classListData={charLevelProps.classListData} setClassListData={charLevelProps.setClassListData}
-                formData={charLevelProps.formData} setFormData={charLevelProps.setFormData}/>
             </Grid>
         </Grid>
     </Box>

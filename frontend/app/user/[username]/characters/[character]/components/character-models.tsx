@@ -17,6 +17,7 @@ export interface CharacterMiscFieldParams {
 export interface CharacterClass {
     className: string
     level: number
+    isMain: boolean
 }
 
 export interface AbilityScore {
@@ -118,6 +119,13 @@ export interface CharacterSpells {
     effects : Effect[]
 }
 
+export interface CharacterSpellSlots {
+    spellLevel: number;
+    slotsRemaining : number;
+    slotsTotal : number;
+    additionalSlots : number;
+}
+
 export interface Character {
     characterName: string;
     buildOwner: string;
@@ -134,6 +142,7 @@ export interface Character {
     characterMisc: CharacterMisc[];
     characterAdditionalScores : CharacterAdditionalScores[];
     characterSpells: CharacterSpells[]
+    characterSpellSlotInfo : CharacterSpellSlots[]
 }
 
 export interface ClassLevelFieldProps {
@@ -151,6 +160,13 @@ export interface SpellDataProps {
 }
 
 export interface CharacterLevelDataProps {
+    formData: Character;
+    setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
+    classListData : ClassModel[]
+    setClassListData: React.Dispatch<React.SetStateAction<ClassModel[] | null>>;
+}
+
+export interface CharacterSpelllDataProps {
     formData: Character;
     setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
     classListData : ClassModel[]
