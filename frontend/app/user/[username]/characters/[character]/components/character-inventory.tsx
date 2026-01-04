@@ -2,7 +2,7 @@ import { DataGrid, GridCellParams, GridColDef } from "@mui/x-data-grid";
 import { CharacterDataProps, Effect, InventoryItem } from "./character-models";
 import { useEffect, useState } from "react";
 import { Add, CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, InputLabel, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, Stack, TextField, Typography } from "@mui/material";
 import { SectionDivider } from "./character-fields";
 import { useAlert } from "../../../components/alert-provider";
 import React from "react";
@@ -41,7 +41,6 @@ function AddInventoryButton(props: CharacterDataProps) {
         })
     }
 
-    // Add a new effect row
     const addEffect = () => {
         setItem((prev) => ({
             ...prev,
@@ -49,7 +48,6 @@ function AddInventoryButton(props: CharacterDataProps) {
         }));
     };
 
-    // Remove an effect row
     const removeEffect = (index: number) => {
         setItem((prev) => ({
             ...prev,
@@ -57,7 +55,6 @@ function AddInventoryButton(props: CharacterDataProps) {
         }));
     };
 
-    // Update an effect row
     const updateEffect = (index: number, field: keyof Effect, value: string | number) => {
         setItem((prev) => {
             const effects = [...prev.effects];

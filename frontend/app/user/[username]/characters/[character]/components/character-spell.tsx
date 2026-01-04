@@ -1,6 +1,6 @@
 import { DataGrid, GridCellParams, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { CharacterClass, CharacterDataProps, CharacterSpelllDataProps as CharacterSpellDataProps, CharacterSpells, CharacterSpellSlots, Effect } from "./character-models";
-import { Add, CheckBox, CheckBoxOutlineBlank, Remove, Sync } from "@mui/icons-material";
+import { Add, Remove } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import React from "react";
 import { useAlert } from "../../../components/alert-provider";

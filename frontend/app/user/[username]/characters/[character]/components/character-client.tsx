@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchCharacter } from "../../../../../libs/character-data";
 import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField } from './character-fields';
-import { Container, Grid, Box } from "@mui/material";
+import { Container, Grid, Box, Tabs, Tab } from "@mui/material";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { AbilityScore, Character, CharacterDataProps, HitPoints } from "./character-models";
 import { calculate_ability_score_modifiers, calculate_armour_class, calculate_proficiency_bonus, calculate_save_score_modifiers, character_level_calculation } from './character-logic';
@@ -13,10 +13,46 @@ import { PROFICIENCY_BONUS_FIELD } from "@/app/libs/constants";
 import { ActiveInventoryTableInfo, InventoryTableInfo } from "./character-inventory";
 import { SpellTableInfo } from "./character-spell";
 import { CharacterLevelTableModule } from "./character-levels";
+import React from "react";
 
 const queryClient = new QueryClient()
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function CustomTabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`character-tabpanel-${index}`}
+      aria-labelledby={`character-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `character-tab-${index}`,
+    'aria-controls': `character-tabpanel-${index}`,
+  };
+}
+
 function CharacterClientContent({character} : {character : string}) {
+    const [tabValue, setTabValue] = React.useState(0);
+
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setTabValue(newValue);
+    };
+
     const charProfile= useQuery({
         queryKey: [character.replaceAll("%20", "_") + "_Char_Profile"],
         queryFn: () => fetchCharacter({ name: character}),
@@ -40,17 +76,37 @@ function CharacterClientContent({character} : {character : string}) {
     if (charProfile.isLoading || !formData || classList.isLoading || !classListData) return <div>Loading…</div>;
 
     return (
+        
         <Container maxWidth="lg">
             <CharacterGeneralInfoModule formData={formData} setFormData={setFormData} />
-            <SectionDivider sectionText="Character Core" />
-            <CharacterLevelTableModule formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
-            <AbilitySaveScoresInfo formData={formData} setFormData={setFormData} />
-            <CharacterGeneralInfoAdditionalAbilities formData={formData} setFormData={setFormData} />
-            <SectionDivider sectionText="Combat" />
-            <CombatInfo formData={formData} setFormData={setFormData} />
-            <ActiveInventoryTableInfo formData={formData} setFormData={setFormData} />
+            <Box sx={{ width: '100%' }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
+                        <Tab label="Character Core" {...a11yProps(0)} />
+                        <Tab label="Combat Info" {...a11yProps(1)} />
+                        <Tab label="Inventory" {...a11yProps(2)} />
+                        <Tab label="Spells" {...a11yProps(3)} />
+                    </Tabs>
+                </Box>
+                <CustomTabPanel value={tabValue} index={0}>
+                    <SectionDivider sectionText="Character Core" />
+                    <CharacterLevelTableModule formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
+                    <AbilitySaveScoresInfo formData={formData} setFormData={setFormData} />
+                    <CharacterGeneralInfoAdditionalAbilities formData={formData} setFormData={setFormData} />
+                </CustomTabPanel>
+                <CustomTabPanel value={tabValue} index={1}>
+                    <SectionDivider sectionText="Combat" />
+                    <CombatInfo formData={formData} setFormData={setFormData} />
+                    <ActiveInventoryTableInfo formData={formData} setFormData={setFormData} />
+                </CustomTabPanel>
+                <CustomTabPanel value={tabValue} index={2}>
+                                
             <InventoryTableInfo formData={formData} setFormData={setFormData}/>
-            <SpellTableInfo formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
+                </CustomTabPanel>
+                <CustomTabPanel value={tabValue} index={3}>
+                    <SpellTableInfo formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
+                </CustomTabPanel>
+            </Box>
         </Container>
     );
 }

@@ -1,4 +1,4 @@
-import { ClassListDataProps, ClassModel } from "./class-models";
+import {ClassModel } from "./class-models";
 
 export interface CharacterMiscFieldProps {
     label: string;
