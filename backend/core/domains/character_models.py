@@ -81,6 +81,11 @@ class CharacterSpellSlots(BaseModel):
     slotsTotal: int
     additionalSlots: int
 
+class CharacterLog(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    description: str
+    type : str
+
 class Character(BaseModel):
     model_config = ConfigDict(extra="ignore")
     characterName: str
@@ -95,6 +100,7 @@ class Character(BaseModel):
     characterAdditionalScores : Optional[List[CharacterAdditionalScores]] = None
     characterSpells : Optional[List[CharacterSpells]] = None
     characterSpellSlotInfo : Optional[List[CharacterSpellSlots]] = None
+    characterLog : Optional[List[CharacterLog]] = None
 
 class CharacterList(BaseModel):
     data : list[Character]

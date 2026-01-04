@@ -1,11 +1,13 @@
-import { DataGrid, GridCellParams, GridColDef } from "@mui/x-data-grid";
-import { CharacterDataProps, CharacterSpelllDataProps, CharacterSpells, Effect } from "./character-models";
-import { Add, CheckBox, CheckBoxOutlineBlank, Remove } from "@mui/icons-material";
+import { DataGrid, GridCellParams, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { CharacterClass, CharacterDataProps, CharacterSpelllDataProps as CharacterSpellDataProps, CharacterSpells, CharacterSpellSlots, Effect } from "./character-models";
+import { Add, CheckBox, CheckBoxOutlineBlank, Remove, Sync } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import React from "react";
 import { useAlert } from "../../../components/alert-provider";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, Stack, TextField, Typography } from "@mui/material";
 import { SectionDivider } from "./character-fields";
+import { ClassFeatureSpellNumbers } from "./class-models";
+import { generate_spell_slot_updates } from "./character-logic";
 
 function AddSpellsButton(props: CharacterDataProps) {
     const [open, setOpen] = React.useState(false);
@@ -184,6 +186,23 @@ function AddSpellsButton(props: CharacterDataProps) {
 }
 
 function SpellTable(props: CharacterDataProps) {
+    const { showAlert } = useAlert();
+    const handleCast = (params: GridRenderCellParams) => {
+        const spellName: string = params.row.spellName;
+        const spellLevel: number = Number(params.row.spellLevel);
+        const spellSlotObj: CharacterSpellSlots | undefined = props.formData.characterSpellSlotInfo.find(item => item.spellLevel === spellLevel)
+
+        if (spellSlotObj === undefined || spellSlotObj.slotsRemaining === 0) {
+            setTimeout(() => showAlert('error', `Cannot cast level ${spellLevel} spell, no more spell slots remaining`), 0);
+        } else {
+            props.setFormData(prev => prev ? {
+                ...prev,
+                characterSpellSlotInfo: prev.characterSpellSlotInfo.map(item => item.spellLevel === spellLevel ? { ...item, slotsRemaining: item.slotsRemaining - 1 } : item),
+                characterLog: [...prev.characterLog, { description: `Cast ${spellName}`, type: "Cast Spells" }]
+            } : prev)
+        }
+
+    }
     const columns: GridColDef[] = [
         { field: "spellName", headerName: "Spell name", width: 100 },
         { field: "spellLevel", headerName: "Spell level", width: 100 },
@@ -191,11 +210,15 @@ function SpellTable(props: CharacterDataProps) {
         { field: "range", headerName: "Range", width: 100 },
         { field: "fullDescription", headerName: "Description", width: 300 },
         {
-            field: "isActive", headerName: "Activate Spell", flex: 1,
+            field: "actions", headerName: "Activate Spell", flex: 1,
             sortable: false,
             editable: false,
             renderCell: (params) => {
-                return params.value ? <CheckBox /> : <CheckBoxOutlineBlank />;
+                return <>
+                    <Button onClick={() => handleCast(params)} variant="outlined">
+                        Cast Spell
+                    </Button>
+                </>;
             }
         },
         { field: "moreDetails", headerName: "Details", width: 200 }
@@ -243,7 +266,27 @@ function SpellTable(props: CharacterDataProps) {
     )
 }
 
-function SpellSlotTable(props: CharacterSpelllDataProps) {
+function ResetSpellSlotButton(props: CharacterDataProps) {
+    const handleReset = () => {
+        props.setFormData(prev => prev ? {
+            ...prev,
+            characterSpellSlotInfo: prev.characterSpellSlotInfo.map(item => ({
+                ...item,
+                slotsRemaining: item.slotsTotal
+            }))
+        }
+            : prev)
+    }
+    return <>
+        <Box display="flex" justifyContent="center" mt={2}>
+            <Button onClick={handleReset} variant="outlined">
+                Restore Spell Slot
+            </Button>
+        </Box>
+    </>
+}
+
+function SpellSlotTable(props: CharacterSpellDataProps) {
     const columns: GridColDef[] = [
         { field: "spellLevel", headerName: "Spell Level", headerAlign: 'center', align: 'center', flex: 1, },
         {
@@ -271,7 +314,7 @@ function SpellSlotTable(props: CharacterSpelllDataProps) {
                 </Stack>
             ),
         },
-        { field: "slotsTotal", headerName: "Total Slots", headerAlign: 'center', align: 'center', flex: 1,}
+        { field: "slotsTotal", headerName: "Total Slots", headerAlign: 'center', align: 'center', flex: 1, }
 
     ];
     const [rows, setRows] = useState(props.formData.characterSpellSlotInfo)
@@ -280,14 +323,47 @@ function SpellSlotTable(props: CharacterSpelllDataProps) {
         setRows(props.formData.characterSpellSlotInfo)
     }, [props.formData.characterSpellSlotInfo])
 
+    useEffect(() => {
+        const mainClassList: CharacterClass[] = props.formData.classes.filter(element => element.isMain)
+        if (mainClassList.length === 0) {
+            return
+        } else {
+            const mainClass: CharacterClass = mainClassList[0];
+            const baseClassSpellSlots: ClassFeatureSpellNumbers[] | undefined = props.classListData.find(item => item.className === mainClass.className)?.featureTableData
+                .find(feature => feature.level === mainClass.level)?.numOfSpells
+            const currSpellSlotsList: CharacterSpellSlots[] = props.formData.characterSpellSlotInfo;
+            if (baseClassSpellSlots !== undefined) {
+                const updatedSpellSlots: CharacterSpellSlots[] = generate_spell_slot_updates(baseClassSpellSlots, currSpellSlotsList)
+                if (updatedSpellSlots.length !== 0) {
+                    props.setFormData(
+                        prev => prev ? {
+                            ...prev,
+                            characterSpellSlotInfo: updatedSpellSlots
+                        } : prev
+                    )
+                }
+            }
+        }
+
+    }, [props.formData.classes])
+
     const updateRemainingSlots = (id: number, delta: number) => {
+        const data: CharacterSpellSlots | undefined = rows.find(row => row.spellLevel === id)
+        const newValue: number = data ? data.slotsRemaining + delta : 0;
+
         setRows((prev) =>
             prev.map((row) =>
                 row.spellLevel === id
-                    ? { ...row, slotsRemaining: Math.max(0, row.slotsRemaining + delta) }
+                    ? { ...row, slotsRemaining: Math.max(0, newValue) }
                     : row
             )
         );
+
+        props.setFormData(prev => prev ? {
+            ...prev,
+            characterSpellSlotInfo: prev.characterSpellSlotInfo.map(item => item.spellLevel === id ? { ...item, slotsRemaining: Math.max(0, newValue) } : item)
+        }
+            : prev)
     };
 
     return (
@@ -308,7 +384,7 @@ function SpellSlotTable(props: CharacterSpelllDataProps) {
     )
 }
 
-export function SpellTableInfo(props: CharacterSpelllDataProps) {
+export function SpellTableInfo(props: CharacterSpellDataProps) {
     return <Box sx={{ margin: 2, width: '100%', overflowX: 'auto' }}>
         <Grid container
             direction="column"
@@ -320,6 +396,7 @@ export function SpellTableInfo(props: CharacterSpelllDataProps) {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
                 <SpellSlotTable formData={props.formData} setFormData={props.setFormData} classListData={props.classListData} setClassListData={props.setClassListData} />
+                <ResetSpellSlotButton formData={props.formData} setFormData={props.setFormData} />
             </Grid>
             <Grid size={{ xs: 12, sm: 12 }}>
                 <SpellTable formData={props.formData} setFormData={props.setFormData} />

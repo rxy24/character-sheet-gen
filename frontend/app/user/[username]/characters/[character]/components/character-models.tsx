@@ -126,6 +126,11 @@ export interface CharacterSpellSlots {
     additionalSlots : number;
 }
 
+export interface CharacterLog {
+    description: string;
+    type : string;
+}
+
 export interface Character {
     characterName: string;
     buildOwner: string;
@@ -143,6 +148,7 @@ export interface Character {
     characterAdditionalScores : CharacterAdditionalScores[];
     characterSpells: CharacterSpells[]
     characterSpellSlotInfo : CharacterSpellSlots[]
+    characterLog : CharacterLog[]
 }
 
 export interface ClassLevelFieldProps {

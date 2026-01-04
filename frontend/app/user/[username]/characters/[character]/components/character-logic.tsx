@@ -1,4 +1,5 @@
-import { AbilityScore, Character, CharacterClass, CharacterDataProps, InventoryItem, SaveScores } from "./character-models";
+import { AbilityScore, Character, CharacterClass, CharacterDataProps, CharacterSpellSlots, InventoryItem, SaveScores } from "./character-models";
+import { ClassFeatureSpellNumbers } from "./class-models";
 
 export function calculate_proficiency_bonus(props: CharacterDataProps): number {
     const characterLevel: number = character_level_calculation(props.formData.classes)
@@ -51,4 +52,27 @@ export function calculate_armour_class(characterModel : Character){
     }
 
     return bodyAcValue + shieldAcValue + modifierAc
+}
+
+export function generate_spell_slot_updates(baseClassSpellSlots: ClassFeatureSpellNumbers[], currSpellSlotsList: CharacterSpellSlots[]): CharacterSpellSlots[] {
+    const updatedSpellSlots: CharacterSpellSlots[] = []
+
+    if (baseClassSpellSlots !== undefined) {
+        for (const slot of baseClassSpellSlots) {
+            const currSpellSlot = currSpellSlotsList.find(slots => slots.spellLevel === slot.spellLevel)
+            if (currSpellSlot === undefined) {
+                const newSpellSlot: CharacterSpellSlots = {
+                    spellLevel: slot.spellLevel,
+                    slotsRemaining: slot.amount,
+                    additionalSlots: 0,
+                    slotsTotal: slot.amount
+                }
+                updatedSpellSlots.push(newSpellSlot)
+            } else {
+                updatedSpellSlots.push({ ...currSpellSlot, slotsTotal: slot.amount })
+            }
+        }
+    }
+
+    return updatedSpellSlots
 }

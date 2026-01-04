@@ -76,7 +76,6 @@ function AddInventoryButton(props: CharacterDataProps) {
             }
             : prev
         );
-        console.log(props.formData)
         setItem({
             name: "",
             description: "",
