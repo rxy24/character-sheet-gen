@@ -14,48 +14,49 @@ import { ActiveInventoryTableInfo, InventoryTableInfo } from "./character-invent
 import { SpellTableInfo } from "./character-spell";
 import { CharacterLevelTableModule } from "./character-levels";
 import React from "react";
+import { CharacterSkillsTable } from "./character-skills";
 
 const queryClient = new QueryClient()
 
 interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+    children?: React.ReactNode;
+    index: number;
+    value: number;
 }
 
 function CustomTabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+    const { children, value, index, ...other } = props;
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`character-tabpanel-${index}`}
-      aria-labelledby={`character-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`character-tabpanel-${index}`}
+            aria-labelledby={`character-tab-${index}`}
+            {...other}
+        >
+            {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+        </div>
+    );
 }
 
 function a11yProps(index: number) {
-  return {
-    id: `character-tab-${index}`,
-    'aria-controls': `character-tabpanel-${index}`,
-  };
+    return {
+        id: `character-tab-${index}`,
+        'aria-controls': `character-tabpanel-${index}`,
+    };
 }
 
-function CharacterClientContent({character} : {character : string}) {
+function CharacterClientContent({ character }: { character: string }) {
     const [tabValue, setTabValue] = React.useState(0);
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
     };
 
-    const charProfile= useQuery({
+    const charProfile = useQuery({
         queryKey: [character.replaceAll("%20", "_") + "_Char_Profile"],
-        queryFn: () => fetchCharacter({ name: character}),
+        queryFn: () => fetchCharacter({ name: character }),
         select: (res) => res.items[0]
     });
 
@@ -76,16 +77,17 @@ function CharacterClientContent({character} : {character : string}) {
     if (charProfile.isLoading || !formData || classList.isLoading || !classListData) return <div>Loading…</div>;
 
     return (
-        
+
         <Container maxWidth="lg">
             <CharacterGeneralInfoModule formData={formData} setFormData={setFormData} />
             <Box sx={{ width: '100%' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
                         <Tab label="Character Core" {...a11yProps(0)} />
-                        <Tab label="Combat Info" {...a11yProps(1)} />
-                        <Tab label="Inventory" {...a11yProps(2)} />
-                        <Tab label="Spells" {...a11yProps(3)} />
+                        <Tab label="Skills" {...a11yProps(1)} />
+                        <Tab label="Combat" {...a11yProps(2)} />
+                        <Tab label="Inventory" {...a11yProps(3)} />
+                        <Tab label="Spells" {...a11yProps(4)} />
                     </Tabs>
                 </Box>
                 <CustomTabPanel value={tabValue} index={0}>
@@ -95,15 +97,19 @@ function CharacterClientContent({character} : {character : string}) {
                     <CharacterGeneralInfoAdditionalAbilities formData={formData} setFormData={setFormData} />
                 </CustomTabPanel>
                 <CustomTabPanel value={tabValue} index={1}>
+                    <SectionDivider sectionText="Skills" />
+                    <CharacterSkillsTable formData={formData} setFormData={setFormData} />
+                </CustomTabPanel>
+                <CustomTabPanel value={tabValue} index={2}>
                     <SectionDivider sectionText="Combat" />
                     <CombatInfo formData={formData} setFormData={setFormData} />
                     <ActiveInventoryTableInfo formData={formData} setFormData={setFormData} />
                 </CustomTabPanel>
-                <CustomTabPanel value={tabValue} index={2}>
-                                
-            <InventoryTableInfo formData={formData} setFormData={setFormData}/>
-                </CustomTabPanel>
                 <CustomTabPanel value={tabValue} index={3}>
+
+                    <InventoryTableInfo formData={formData} setFormData={setFormData} />
+                </CustomTabPanel>
+                <CustomTabPanel value={tabValue} index={4}>
                     <SpellTableInfo formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
                 </CustomTabPanel>
             </Box>
@@ -128,13 +134,13 @@ export function CharacterGeneralInfoModule(props: CharacterDataProps) {
                 < CharacterMiscField label={"Deity"} disabled={true} props={props} />
             </Grid>
             <Grid size={{ xs: 6, sm: 2 }}>
-                < CharacterMiscField label={"Race"} disabled={true}  props={props}/>
+                < CharacterMiscField label={"Race"} disabled={true} props={props} />
             </Grid>
             <Grid size={{ xs: 6, sm: 2 }}>
-                < CharacterMiscField label={"Background"} disabled={true}  props={props}/>
+                < CharacterMiscField label={"Background"} disabled={true} props={props} />
             </Grid>
             <Grid size={{ xs: 6, sm: 2 }}>
-                < CharacterMiscField label={"Alignment"} disabled={true}  props={props}/>
+                < CharacterMiscField label={"Alignment"} disabled={true} props={props} />
             </Grid>
         </Grid>
     </Box>
@@ -148,7 +154,7 @@ export function CharacterGeneralInfoAdditionalAbilities(props: CharacterDataProp
         const profValue = props.formData.characterAdditionalScores.find(
             prof => prof.description === PROFICIENCY_BONUS_FIELD
         )?.value;
-        
+
         if (profValue === undefined || profValue === proficiencyCalc) return;
 
         props.setFormData(prev => ({
@@ -167,20 +173,24 @@ export function CharacterGeneralInfoAdditionalAbilities(props: CharacterDataProp
 
     return <Box sx={{ margin: 2 }}>
         <Grid container spacing={2}>
+            <Grid size={{ xs: 6, sm: 12 }}>
+                <SectionDivider sectionText="Passive Effects" />
+            </Grid>
+
             <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Proficiency Bonus"} disabled={true} props={props} overrideValue={proficiencyCalc}/>
+                <CharacterMiscNumberField label={"Proficiency Bonus"} disabled={true} props={props} overrideValue={proficiencyCalc} />
             </Grid>
             <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Passive Insight"} disabled={true} props={props}/>
+                <CharacterMiscNumberField label={"Passive Insight"} disabled={true} props={props} />
             </Grid>
             <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Passive Investigation"} disabled={true} props={props}/>
+                <CharacterMiscNumberField label={"Passive Investigation"} disabled={true} props={props} />
             </Grid>
             <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Passive Perception"} disabled={true} props={props}/>
+                <CharacterMiscNumberField label={"Passive Perception"} disabled={true} props={props} />
             </Grid>
             <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Movement"} disabled={true} props={props}/>
+                <CharacterMiscNumberField label={"Movement"} disabled={true} props={props} />
             </Grid>
         </Grid>
     </Box>
@@ -207,7 +217,7 @@ export function AbilitySaveScoresInfo(props: CharacterDataProps) {
         }));
     }, [
         props.formData.abilityScores,
-        
+
     ]);
 
     useEffect(() => {
@@ -286,13 +296,13 @@ export function CombatInfo(props: CharacterDataProps) {
 }
 
 interface CharacterUrlProp {
-    characterSlug : string
+    characterSlug: string
 }
 
 export default function CharacterClientPage({ characterSlug }: CharacterUrlProp) {
     return (
         <QueryClientProvider client={queryClient}>
-            <CharacterClientContent character={characterSlug}/>
+            <CharacterClientContent character={characterSlug} />
         </QueryClientProvider>
     );
 }

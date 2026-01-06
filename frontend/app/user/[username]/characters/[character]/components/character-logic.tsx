@@ -76,3 +76,25 @@ export function generate_spell_slot_updates(baseClassSpellSlots: ClassFeatureSpe
 
     return updatedSpellSlots
 }
+
+export function calculate_skill_roll(ability: string, proficiency : string, abilityScores : AbilityScore[]){
+    const score : AbilityScore | undefined = abilityScores.find(item => item.abilityName === ability)
+    let rollAmount : number = score? score.modifier : 0
+    return calculate_skill_roll_add_prof(proficiency, rollAmount)
+}
+
+function calculate_skill_roll_add_prof(proficiency : string, rollAmount : number) : number {
+    let profRollAmount : number = 0
+    if(proficiency === undefined || proficiency.length === 0){
+        profRollAmount = 0
+    }
+    if(proficiency === "half"){
+        profRollAmount = 1
+    } else if(proficiency === "prof"){
+        profRollAmount = 2
+    } else if(proficiency === "double"){
+        profRollAmount = 4
+    }
+
+    return rollAmount + profRollAmount
+}

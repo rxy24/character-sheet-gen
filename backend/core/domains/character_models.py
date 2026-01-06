@@ -86,6 +86,13 @@ class CharacterLog(BaseModel):
     description: str
     type : str
 
+class CharacterSkill(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    skillName : str
+    ability: str
+    proficiency: str
+    advantage: bool
+
 class Character(BaseModel):
     model_config = ConfigDict(extra="ignore")
     characterName: str
@@ -94,6 +101,7 @@ class Character(BaseModel):
     armourClass: ArmourClass
     abilityScores: List[AbilityScore]
     savingThrows: List[SavingThrow]
+    skills: Optional[List[CharacterSkill]] = None
     classes: List[CharacterClass]
     inventory: Optional[List[InventoryItem]] = None
     characterMisc: Optional[List[CharacterMisc]] = None

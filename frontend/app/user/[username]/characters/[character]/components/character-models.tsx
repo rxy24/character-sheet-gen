@@ -131,6 +131,13 @@ export interface CharacterLog {
     type : string;
 }
 
+export interface CharacterSkill {
+    skillName : string;
+    ability : string;
+    proficiency : string;
+    advantage : boolean;
+}
+
 export interface Character {
     characterName: string;
     buildOwner: string;
@@ -142,6 +149,7 @@ export interface Character {
     armourClass: ArmourClass;
     abilityScores: AbilityScore[];
     savingThrows: SaveScores[];
+    skills: CharacterSkill[]
     classes: CharacterClass[];
     inventory: InventoryItem[]
     characterMisc: CharacterMisc[];
