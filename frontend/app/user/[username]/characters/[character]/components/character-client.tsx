@@ -2,19 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { fetchCharacter } from "../../../../../libs/character-data";
-import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider, CharacterAbilityTable, CharacterSaveTable, HealthPointInfo, ArmourClassInfo, CharacterMiscNumberField } from './character-fields';
+import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider } from './character-fields';
 import { Container, Grid, Box, Tabs, Tab } from "@mui/material";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { AbilityScore, Character, CharacterDataProps, HitPoints } from "./character-models";
-import { calculate_ability_score_modifiers, calculate_armour_class, calculate_proficiency_bonus, calculate_save_score_modifiers, character_level_calculation } from './character-logic';
+import { Character, CharacterDataProps } from "./character-models";
+import { character_level_calculation } from './character-logic';
 import { ClassModel } from "./class-models";
 import { fetchAllClass } from "@/app/libs/class-data";
-import { PROFICIENCY_BONUS_FIELD } from "@/app/libs/constants";
 import { ActiveInventoryTableInfo, InventoryTableInfo } from "./character-inventory";
 import { SpellTableInfo } from "./character-spell";
 import { CharacterLevelTableModule } from "./character-levels";
 import React from "react";
 import { CharacterSkillsTable } from "./character-skills";
+import { CharacterPassiveField } from "./character-passive";
+import { AbilitySaveScoresInfo } from "./character-abilities";
+import { CombatInfo } from "./character-combat";
 
 const queryClient = new QueryClient()
 
@@ -94,7 +96,7 @@ function CharacterClientContent({ character }: { character: string }) {
                     <SectionDivider sectionText="Character Core" />
                     <CharacterLevelTableModule formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
                     <AbilitySaveScoresInfo formData={formData} setFormData={setFormData} />
-                    <CharacterGeneralInfoAdditionalAbilities formData={formData} setFormData={setFormData} />
+                    <CharacterPassiveField formData={formData} setFormData={setFormData} />
                 </CustomTabPanel>
                 <CustomTabPanel value={tabValue} index={1}>
                     <SectionDivider sectionText="Skills" />
@@ -146,154 +148,6 @@ export function CharacterGeneralInfoModule(props: CharacterDataProps) {
     </Box>
 }
 
-export function CharacterGeneralInfoAdditionalAbilities(props: CharacterDataProps) {
-    const proficiencyCalc = calculate_proficiency_bonus(props)
-
-
-    useEffect(() => {
-        const profValue = props.formData.characterAdditionalScores.find(
-            prof => prof.description === PROFICIENCY_BONUS_FIELD
-        )?.value;
-
-        if (profValue === undefined || profValue === proficiencyCalc) return;
-
-        props.setFormData(prev => ({
-            ...prev!,
-            characterAdditionalScores: prev!.characterAdditionalScores.map(charClass =>
-                charClass.description === PROFICIENCY_BONUS_FIELD
-                    ? { ...charClass, value: proficiencyCalc }
-                    : charClass
-            ),
-        }));
-    }, [
-        props.formData.characterAdditionalScores,
-        proficiencyCalc,
-    ]);
-
-
-    return <Box sx={{ margin: 2 }}>
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 6, sm: 12 }}>
-                <SectionDivider sectionText="Passive Effects" />
-            </Grid>
-
-            <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Proficiency Bonus"} disabled={true} props={props} overrideValue={proficiencyCalc} />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Passive Insight"} disabled={true} props={props} />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Passive Investigation"} disabled={true} props={props} />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Passive Perception"} disabled={true} props={props} />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 2 }}>
-                <CharacterMiscNumberField label={"Movement"} disabled={true} props={props} />
-            </Grid>
-        </Grid>
-    </Box>
-}
-
-export function AbilitySaveScoresInfo(props: CharacterDataProps) {
-    useEffect(() => {
-
-        const oldScores = props.formData.abilityScores;
-        const newScores = oldScores.map(score => ({
-            ...score,
-            modifier: calculate_ability_score_modifiers(score),
-        }));
-        const noChanges = newScores.every(
-            (newScore, i) => newScore.modifier === oldScores[i].modifier
-        );
-
-        if (noChanges) {
-            return;
-        }
-        props.setFormData(prev => ({
-            ...prev!,
-            abilityScores: newScores,
-        }));
-    }, [
-        props.formData.abilityScores,
-
-    ]);
-
-    useEffect(() => {
-
-        const oldSaves = props.formData.savingThrows;
-        const abilityScores: AbilityScore[] = props.formData.abilityScores;
-        const proficiencyBonus: number = props.formData.characterAdditionalScores.find(x => x.description === "Proficiency Bonus")?.value ?? 0
-        const newSaves = oldSaves.map(score => ({
-            ...score,
-            modifier: calculate_save_score_modifiers(score, abilityScores, proficiencyBonus),
-        }));
-        const noChanges = newSaves.every(
-            (newSaves, i) => newSaves.modifier === oldSaves[i].modifier
-        );
-
-        if (noChanges) {
-            return;
-        }
-        props.setFormData(prev => ({
-            ...prev!,
-            savingThrows: newSaves,
-        }));
-    }, [
-        props.formData.abilityScores,
-        props.formData.savingThrows,
-        props.formData.characterAdditionalScores
-    ]);
-
-    return <Box sx={{ margin: 2 }}>
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <SectionDivider sectionText="Ability Info" />
-                <CharacterAbilityTable props={props} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <SectionDivider sectionText="Save Info" />
-                <CharacterSaveTable props={props} />
-            </Grid>
-        </Grid>
-    </Box>
-}
-
-export function CombatInfo(props: CharacterDataProps) {
-    const hpModel: HitPoints = props.formData.hitPoints
-
-    useEffect(() => {
-        const newAC: number = calculate_armour_class(props.formData)
-        const currAc: number = props.formData.armourClass.armourClassValue
-
-        if (newAC === currAc) return
-
-        props.setFormData(prev => {
-            if (!prev) return prev
-
-            return {
-                ...prev,
-                armourClass: {
-                    ...prev.armourClass,
-                    armourClassValue: newAC
-                }
-            }
-        });
-    }, [props.formData.armourClass, props.formData.inventory])
-
-    return <Box sx={{ margin: 2 }}>
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 5 }}>
-                <HealthPointInfo hpModel={hpModel} />
-
-            </Grid>
-            <Grid size={{ xs: 12, sm: 5 }}>
-                <ArmourClassInfo formData={props.formData} setFormData={props.setFormData} />
-            </Grid>
-        </Grid>
-    </Box>
-}
 
 interface CharacterUrlProp {
     characterSlug: string
