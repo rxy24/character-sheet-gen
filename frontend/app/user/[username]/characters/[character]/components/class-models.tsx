@@ -1,6 +1,7 @@
 export interface ClassFeatureEffects {
+  name: string;
   description: string;
-  value?: string | null;
+  value: string;
 }
 
 export interface ClassFeature {

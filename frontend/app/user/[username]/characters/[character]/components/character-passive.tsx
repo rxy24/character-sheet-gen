@@ -31,10 +31,10 @@ export function CharacterPassiveField(props: CharacterDataProps) {
 
 
     return <Box sx={{ margin: 2 }}>
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 6, sm: 12 }}>
-                <SectionDivider sectionText="Passive Effects" />
-            </Grid>
+        <SectionDivider sectionText="Passive Effects" />
+        <Grid container spacing={2}
+            alignItems="center"
+            justifyContent="center">
 
             <Grid size={{ xs: 6, sm: 2 }}>
                 <CharacterMiscNumberField label={"Proficiency Bonus"} disabled={true} props={props} overrideValue={proficiencyCalc} />

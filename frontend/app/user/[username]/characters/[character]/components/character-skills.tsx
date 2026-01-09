@@ -2,11 +2,15 @@ import { DataGrid, GridCellParams, GridColDef, GridRowModel } from "@mui/x-data-
 import { CharacterDataProps, CharacterSkill } from "./character-models";
 import { calculate_skill_roll } from "./character-logic";
 import { CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Box, Grid } from "@mui/material";
 
 export function CharacterSkillsTable(props: CharacterDataProps) {
-    const characterSkillData: CharacterSkill[] = props.formData.skills
-    const [rows, setRows] = useState(characterSkillData)
+    const [rows, setRows] = useState(props.formData.skills)
+    useEffect(() => {
+        setRows(props.formData.skills)
+    }, [props.formData.skills])
+
     const columns: GridColDef[] = [
         {
             field: "rolls", headerName: "Rolls", width: 70,
@@ -76,20 +80,30 @@ export function CharacterSkillsTable(props: CharacterDataProps) {
         );
     };
     return (
-        <div>
-            <DataGrid
-                getRowId={(row) => row.skillName}
-                rows={rows}
-                columns={columns}
-                hideFooter={true}
-                onCellClick={handleCellClick}
-                processRowUpdate={handleProcessRowUpdate}
-                density="compact"
-                disableColumnMenu
-                disableColumnSelector
-                disableRowSelectionOnClick
-                autoHeight
-            />
-        </div>
+        <>
+            <Box sx={{ margin: 2 }}>
+                <Grid container spacing={2}
+                    direction="column"
+                    alignItems="center"
+                    justifyContent="center">
+                    <Grid size={{ xs: 12, sm: 12 }}>
+                        <DataGrid
+                            getRowId={(row) => row.skillName}
+                            rows={rows}
+                            columns={columns}
+                            hideFooter={true}
+                            onCellClick={handleCellClick}
+                            processRowUpdate={handleProcessRowUpdate}
+                            density="compact"
+                            disableColumnMenu
+                            disableColumnSelector
+                            disableRowSelectionOnClick
+                            autoHeight
+                        />
+                    </Grid>
+                </Grid>
+            </Box>
+
+        </>
     )
 }

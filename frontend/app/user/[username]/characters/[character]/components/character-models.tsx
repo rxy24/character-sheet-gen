@@ -138,6 +138,19 @@ export interface CharacterSkill {
     advantage : boolean;
 }
 
+export interface ClassFeature {
+  name: string;
+  level: number;
+  description: string;
+  actionType?: string | null;
+  effects?: Effect[] | null;
+}
+
+export interface CharacterFeatures {
+    featureDescription : ClassFeature
+    effects : Effect[]
+}
+
 export interface Character {
     characterName: string;
     buildOwner: string;
@@ -157,6 +170,7 @@ export interface Character {
     characterSpells: CharacterSpells[]
     characterSpellSlotInfo : CharacterSpellSlots[]
     characterLog : CharacterLog[]
+    characterFeatures : CharacterFeatures[]
 }
 
 export interface ClassLevelFieldProps {

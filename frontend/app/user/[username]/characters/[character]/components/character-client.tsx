@@ -17,6 +17,7 @@ import { CharacterSkillsTable } from "./character-skills";
 import { CharacterPassiveField } from "./character-passive";
 import { AbilitySaveScoresInfo } from "./character-abilities";
 import { CombatInfo } from "./character-combat";
+import { CharacterFeatureInfo } from "./character-features";
 
 const queryClient = new QueryClient()
 
@@ -84,8 +85,11 @@ function CharacterClientContent({ character }: { character: string }) {
             <CharacterGeneralInfoModule formData={formData} setFormData={setFormData} />
             <Box sx={{ width: '100%' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
-                        <Tab label="Character Core" {...a11yProps(0)} />
+                    <Tabs value={tabValue} onChange={handleTabChange} aria-label="character-tabs"
+                        variant="scrollable"
+                        scrollButtons="auto"
+                        allowScrollButtonsMobile>
+                        <Tab label="Core" {...a11yProps(0)} />
                         <Tab label="Skills" {...a11yProps(1)} />
                         <Tab label="Combat" {...a11yProps(2)} />
                         <Tab label="Inventory" {...a11yProps(3)} />
@@ -96,10 +100,12 @@ function CharacterClientContent({ character }: { character: string }) {
                     <SectionDivider sectionText="Character Core" />
                     <CharacterLevelTableModule formData={formData} setFormData={setFormData} classListData={classListData} setClassListData={setClassListData} />
                     <AbilitySaveScoresInfo formData={formData} setFormData={setFormData} />
-                    <CharacterPassiveField formData={formData} setFormData={setFormData} />
+                    <CharacterFeatureInfo formData={formData} setFormData={setFormData} />
+
                 </CustomTabPanel>
                 <CustomTabPanel value={tabValue} index={1}>
                     <SectionDivider sectionText="Skills" />
+                    <CharacterPassiveField formData={formData} setFormData={setFormData} />
                     <CharacterSkillsTable formData={formData} setFormData={setFormData} />
                 </CustomTabPanel>
                 <CustomTabPanel value={tabValue} index={2}>

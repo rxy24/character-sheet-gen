@@ -1,6 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.core.domains.class_models import ClassFeature
+
 
 class HitPoints(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -93,6 +95,11 @@ class CharacterSkill(BaseModel):
     proficiency: str
     advantage: bool
 
+class CharacterFeature(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    featureDescription : ClassFeature
+    effects : Optional[List[Effect]] = None
+
 class Character(BaseModel):
     model_config = ConfigDict(extra="ignore")
     characterName: str
@@ -109,6 +116,7 @@ class Character(BaseModel):
     characterSpells : Optional[List[CharacterSpells]] = None
     characterSpellSlotInfo : Optional[List[CharacterSpellSlots]] = None
     characterLog : Optional[List[CharacterLog]] = None
+    characterFeatures : Optional[List[CharacterFeature]] = None
 
 class CharacterList(BaseModel):
     data : list[Character]
