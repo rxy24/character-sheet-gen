@@ -1,5 +1,5 @@
 import { DataGrid, GridCellParams, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { CharacterClass, CharacterDataProps, CharacterSpelllDataProps as CharacterSpellDataProps, CharacterSpells, CharacterSpellSlots, Effect } from "./character-models";
+import { Character, CharacterClass, CharacterDataProps, CharacterSpelllDataProps as CharacterSpellDataProps, CharacterSpells, CharacterSpellSlots, Effect } from "./character-models";
 import { Add, Remove } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import React from "react";
@@ -8,6 +8,184 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider
 import { SectionDivider } from "./character-fields";
 import { ClassFeatureSpellNumbers } from "./class-models";
 import { generate_spell_slot_updates } from "./character-logic";
+import { CharacterEffectModal } from "./character-effects";
+
+export interface SpellFormProps {
+    item: CharacterSpells;
+    setItem: React.Dispatch<React.SetStateAction<CharacterSpells>>;
+}
+
+export interface EditSpellProps {
+    formData: Character;
+    setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
+    spellName : string
+}
+
+export interface SpellEffectProps {
+    spell: CharacterSpells
+    setSpell: React.Dispatch<React.SetStateAction<CharacterSpells>>;
+}
+
+function EditSpellButton(props: EditSpellProps) {
+    const [currItem, setCurrItem] = useState(props.formData.characterSpells.find(item => item.spellName === props.spellName))
+
+    useEffect(() => {
+        setCurrItem(props.formData.characterSpells.find(item => item.spellName === props.spellName))
+    }, [props.formData.characterSpells])
+
+    const currSpell: CharacterSpells | undefined = currItem
+    const defaultSpell: CharacterSpells = { spellName: "", spellLevel: 0, fullDescription: "", range:"", effects: [], castingTime:"", school:""}
+
+    const updatedSpell: CharacterSpells = currSpell ? currSpell : defaultSpell
+
+    const [open, setOpen] = React.useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const { showAlert } = useAlert();
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+    const [item, setItem] = useState(updatedSpell)
+
+    const handleCancelClick = () => {
+        setError(null)
+        setOpen(false)
+        setItem(updatedSpell)
+    }
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        props.setFormData(prev => prev
+            ? {
+                ...prev,
+                characterSpells: prev.characterSpells.map(previtem => previtem.spellName === props.spellName ? item : previtem)
+            }
+            : prev
+        );
+        setItem(item)
+        setOpen(false)
+
+        setTimeout(() => showAlert('success', 'Spell Successfully Updated'), 0);
+    }
+
+    return (
+        <>
+            <Button onClick={handleOpen} variant="outlined">
+                Edit
+            </Button>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                closeAfterTransition={false}
+                aria-labelledby="edit-character-spell-modal"
+                slotProps={{
+                    paper: {
+                        sx: {
+                            width: 800,
+                            maxWidth: 1000,
+                        },
+                    },
+                }}
+            >
+                <DialogTitle>Edit Item</DialogTitle>
+                <DialogContent>
+                    <form id="edit-spell-form" onSubmit={handleSubmit}>
+                        <FormControl sx={{ marginTop: 2 }} fullWidth required>
+                            <SpellFormField item={item} setItem={setItem}/>
+                            <Divider />
+                            <SpellEffects spell={item} setSpell={setItem} />
+                        </FormControl>
+                        {error && <p style={{ color: "red" }}>{error}</p>}
+                    </form>
+                    {error && <p style={{ color: "red" }}>{error}</p>}
+                </DialogContent>
+                <DialogActions>
+                    <Button sx={{ margin: 1 }} variant="outlined" type="submit" form="edit-spell-form">
+                        Submit
+                    </Button>
+                    <Button sx={{ margin: 1 }} variant="outlined" onClick={handleCancelClick}>
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
+    )
+}
+
+function SpellFormField(props: SpellFormProps) {
+    return (
+        <>
+            <Stack spacing={2} mb={1} >
+                <TextField label="Spell Name" id="spell-name" required value={props.item.spellName} onChange={(e) => props.setItem({
+                    ...props.item, spellName: e.target.value
+                })} />
+                <TextField multiline minRows={4}
+                    fullWidth label="Spell Description" id="spell-description" required value={props.item.fullDescription} onChange={(e) => props.setItem(
+                        {
+                            ...props.item, fullDescription: e.target.value
+                        }
+                    )} />
+                <TextField label="Spell School" id="spell-school" value={props.item.school} onChange={(e) => props.setItem(
+                    {
+                        ...props.item, school: e.target.value
+                    }
+                )} />
+                <TextField label="Spell Casting Time" id="spell-casting-time" value={props.item.castingTime} onChange={(e) => props.setItem(
+                    {
+                        ...props.item, castingTime: e.target.value
+                    }
+                )} />
+                <TextField label="Spell Range" id="spell-range" value={props.item.range} onChange={(e) => props.setItem(
+                    {
+                        ...props.item, range: e.target.value
+                    }
+                )} />
+                <TextField type="number" label="Spell Level" id="spell-level" required value={Number(props.item.spellLevel)} onChange={(e) => props.setItem(
+                    {
+                        ...props.item, spellLevel: Number(e.target.value)
+                    }
+                )} inputProps={{
+                    min: 0,
+                    max: 10,
+                    step: 1,
+                }} />
+            </Stack>
+        </>
+    )
+}
+
+function SpellEffects(props: SpellEffectProps) {
+    // Add a new effect row
+    const addEffect = () => {
+        props.setSpell((prev) => ({
+            ...prev,
+            effects: [...prev.effects, { name: "", value: "", description: "" }],
+        }));
+    };
+
+    // Remove an effect row
+    const removeEffect = (index: number) => {
+        props.setSpell((prev) => ({
+            ...prev,
+            effects: prev.effects.filter((_, i) => i !== index),
+        }));
+    };
+
+    // Update an effect row
+    const updateEffect = (index: number, field: keyof Effect, value: string | number) => {
+        props.setSpell((prev) => {
+            const effects = [...prev.effects];
+            effects[index] = { ...effects[index], [field]: value };
+            return { ...prev, effects };
+        });
+    };
+
+    return (
+        <>
+            <CharacterEffectModal effects={props.spell.effects} addEffect={addEffect} removeEffect={removeEffect} updateEffect={updateEffect} />
+        </>
+    )
+}
 
 function AddSpellsButton(props: CharacterDataProps) {
     const [open, setOpen] = React.useState(false);
@@ -42,31 +220,6 @@ function AddSpellsButton(props: CharacterDataProps) {
         })
     }
 
-    // Add a new effect row
-    const addEffect = () => {
-        setSpell((prev) => ({
-            ...prev,
-            effects: [...prev.effects, { name: "", value: "", description: "" }],
-        }));
-    };
-
-    // Remove an effect row
-    const removeEffect = (index: number) => {
-        setSpell((prev) => ({
-            ...prev,
-            effects: prev.effects.filter((_, i) => i !== index),
-        }));
-    };
-
-    // Update an effect row
-    const updateEffect = (index: number, field: keyof Effect, value: string | number) => {
-        setSpell((prev) => {
-            const effects = [...prev.effects];
-            effects[index] = { ...effects[index], [field]: value };
-            return { ...prev, effects };
-        });
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -77,7 +230,6 @@ function AddSpellsButton(props: CharacterDataProps) {
             }
             : prev
         );
-        console.log(props.formData)
         setSpell({
             spellName: "",
             spellLevel: 0,
@@ -118,55 +270,9 @@ function AddSpellsButton(props: CharacterDataProps) {
                 <DialogContent>
                     <form id="add-new-spell-form" onSubmit={handleSubmit}>
                         <FormControl sx={{ marginTop: 2 }} fullWidth required>
-                            <Stack spacing={2} mb={1} >
-                                <TextField label="Spell Name" id="spell-name" required onChange={(e) => setSpell({ ...spell, spellName: e.target.value })} />
-                                <TextField label="Spell Description" id="spell-description" onChange={(e) => setSpell({ ...spell, fullDescription: e.target.value })} />
-                                <TextField label="Spell School" id="spell-school" required onChange={(e) => setSpell({ ...spell, school: e.target.value })} />
-                                <TextField label="Spell Casting Time" id="spell-casting-time" onChange={(e) => setSpell({ ...spell, castingTime: e.target.value })} />
-                                <TextField label="Spell Range" id="spell-range" onChange={(e) => setSpell({ ...spell, range: e.target.value })} />
-                                <TextField type="number" label="Spell Level" id="spell-level" onChange={(e) => setSpell({ ...spell, spellLevel: Number(e.target.value) })} inputProps={{
-                                    min: 0,
-                                    max: 10,
-                                    step: 1,
-                                }} />
-                            </Stack>
+                            <SpellFormField item={spell} setItem={setSpell} />
                             <Divider />
-                            <Typography >
-                                Effect List
-                            </Typography>
-                            <Typography >
-                                Add effects to allow default calculations of specific fields.
-                            </Typography>
-                            <Stack spacing={2} style={{ maxHeight: 200, overflowY: "auto", paddingTop: 10 }}>
-                                {spell.effects.map((effect, index) => (
-                                    <Stack key={index} direction="row" spacing={2} alignItems="center" >
-                                        <TextField
-                                            label="Effect Name"
-                                            value={effect.name}
-                                            onChange={(e) => updateEffect(index, "name", e.target.value)}
-                                            required
-                                        />
-                                        <TextField
-                                            label="Effect Description"
-                                            value={effect.description}
-                                            onChange={(e) => updateEffect(index, "description", e.target.value)}
-                                            required
-                                        />
-                                        <TextField
-                                            label="Effect Value"
-                                            value={effect.value}
-                                            onChange={(e) => updateEffect(index, "value", e.target.value)}
-                                            required
-                                        />
-                                        <Button variant="outlined" color="error" onClick={() => removeEffect(index)}>
-                                            Remove
-                                        </Button>
-                                    </Stack>
-                                ))}
-                                <Button variant="contained" onClick={addEffect}>
-                                    Add Effect
-                                </Button>
-                            </Stack>
+                            <SpellEffects spell={spell} setSpell={setSpell} />
                         </FormControl>
                         {error && <p style={{ color: "red" }}>{error}</p>}
                     </form>
@@ -221,7 +327,15 @@ function SpellTable(props: CharacterDataProps) {
                 </>;
             }
         },
-        { field: "moreDetails", headerName: "Details", width: 200 }
+        { field: "moreDetails", headerName: "Details", flex: 1,
+                        sortable: false,
+            editable: false,
+            renderCell: (params) => {
+                return <>
+                    <EditSpellButton spellName={params.row.spellName} formData={props.formData} setFormData={props.setFormData} />
+                </>;
+            }
+         }
 
     ];
 
