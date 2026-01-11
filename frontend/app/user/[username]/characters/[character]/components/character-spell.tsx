@@ -18,7 +18,7 @@ export interface SpellFormProps {
 export interface EditSpellProps {
     formData: Character;
     setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
-    spellName : string
+    spellName: string
 }
 
 export interface SpellEffectProps {
@@ -34,7 +34,7 @@ function EditSpellButton(props: EditSpellProps) {
     }, [props.formData.characterSpells])
 
     const currSpell: CharacterSpells | undefined = currItem
-    const defaultSpell: CharacterSpells = { spellName: "", spellLevel: 0, fullDescription: "", range:"", effects: [], castingTime:"", school:""}
+    const defaultSpell: CharacterSpells = { spellName: "", spellLevel: 0, fullDescription: "", range: "", effects: [], castingTime: "", school: "" }
 
     const updatedSpell: CharacterSpells = currSpell ? currSpell : defaultSpell
 
@@ -91,7 +91,7 @@ function EditSpellButton(props: EditSpellProps) {
                 <DialogContent>
                     <form id="edit-spell-form" onSubmit={handleSubmit}>
                         <FormControl sx={{ marginTop: 2 }} fullWidth required>
-                            <SpellFormField item={item} setItem={setItem}/>
+                            <SpellFormField item={item} setItem={setItem} />
                             <Divider />
                             <SpellEffects spell={item} setSpell={setItem} />
                         </FormControl>
@@ -310,11 +310,21 @@ function SpellTable(props: CharacterDataProps) {
 
     }
     const columns: GridColDef[] = [
-        { field: "spellName", headerName: "Spell name", width: 100 },
-        { field: "spellLevel", headerName: "Spell level", width: 100 },
-        { field: "castingTime", headerName: "Casting time", width: 100 },
-        { field: "range", headerName: "Range", width: 100 },
-        { field: "fullDescription", headerName: "Description", width: 300 },
+        { field: "spellName", headerName: "Spell name", flex: 1 },
+        { field: "spellLevel", headerName: "Spell level", flex: 1 },
+        { field: "castingTime", headerName: "Casting time", flex: 1 },
+        { field: "range", headerName: "Range", flex: 1 },
+        { field: "fullDescription", headerName: "Description", flex: 1 },
+        {
+            field: "moreDetails", headerName: "Details", flex: 1,
+            sortable: false,
+            editable: false,
+            renderCell: (params) => {
+                return <>
+                    <EditSpellButton spellName={params.row.spellName} formData={props.formData} setFormData={props.setFormData} />
+                </>;
+            }
+        },
         {
             field: "actions", headerName: "Activate Spell", flex: 1,
             sortable: false,
@@ -326,16 +336,7 @@ function SpellTable(props: CharacterDataProps) {
                     </Button>
                 </>;
             }
-        },
-        { field: "moreDetails", headerName: "Details", flex: 1,
-                        sortable: false,
-            editable: false,
-            renderCell: (params) => {
-                return <>
-                    <EditSpellButton spellName={params.row.spellName} formData={props.formData} setFormData={props.setFormData} />
-                </>;
-            }
-         }
+        }
 
     ];
 
@@ -364,8 +365,15 @@ function SpellTable(props: CharacterDataProps) {
         );
     };
     return (
-        <div>
+        <>
             <DataGrid
+                initialState={{
+                    columns: {
+                        columnVisibilityModel: {
+                            fullDescription: false,
+                        },
+                    },
+                }}
                 getRowId={(row) => row.spellName}
                 rows={rows}
                 columns={columns}
@@ -376,7 +384,7 @@ function SpellTable(props: CharacterDataProps) {
                 disableRowSelectionOnClick
                 disableColumnResize={false}
             />
-        </div>
+        </>
     )
 }
 
@@ -512,7 +520,7 @@ export function SpellTableInfo(props: CharacterSpellDataProps) {
                 <SpellSlotTable formData={props.formData} setFormData={props.setFormData} classListData={props.classListData} setClassListData={props.setClassListData} />
                 <ResetSpellSlotButton formData={props.formData} setFormData={props.setFormData} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 12 }}>
+            <Grid size={{ xs: 12, sm: 10 }}>
                 <SpellTable formData={props.formData} setFormData={props.setFormData} />
                 <AddSpellsButton formData={props.formData} setFormData={props.setFormData} />
             </Grid>

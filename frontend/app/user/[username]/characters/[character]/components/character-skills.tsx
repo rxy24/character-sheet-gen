@@ -1,9 +1,47 @@
 import { DataGrid, GridCellParams, GridColDef, GridRowModel } from "@mui/x-data-grid";
-import { CharacterDataProps, CharacterSkill } from "./character-models";
+import { Character, CharacterDataProps } from "./character-models";
 import { calculate_skill_roll } from "./character-logic";
 import { CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { Box, Grid } from "@mui/material";
+import { Box, FormControl, Grid, MenuItem, Select, SelectChangeEvent } from "@mui/material";
+
+interface SkillProficiencyProp {
+    skillName : string
+    formData : Character
+    setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
+}
+
+function ProficiencyDropdown(props: SkillProficiencyProp) {
+    const skillObj = props.formData.skills.find(skill => skill.skillName === props.skillName) 
+    const handleChange = (event: SelectChangeEvent) => {
+    const updated = {
+        ...skillObj!,
+        proficiency: event.target.value as string
+    };
+        props.setFormData(prev => prev ? {
+            ...prev, 
+            skills : prev.skills.map(skill => skill.skillName === props.skillName ? updated : skill)
+        } : prev)
+    }
+
+    return (
+        <>
+            <FormControl variant="standard" margin="dense" fullWidth>
+                <Select
+                    displayEmpty
+                    id="skill-proficiency-skill-select"
+                    value={skillObj?.proficiency ?? ""}
+                    onChange={handleChange}
+                >
+                    <MenuItem value={""}>None</MenuItem>
+                    <MenuItem value={"half"}>1/2</MenuItem>
+                    <MenuItem value={"prof"}>proficient</MenuItem>
+                    <MenuItem value={"double"}>x2</MenuItem>
+                </Select>
+            </FormControl>
+        </>
+    )
+}
 
 export function CharacterSkillsTable(props: CharacterDataProps) {
     const [rows, setRows] = useState(props.formData.skills)
@@ -25,13 +63,11 @@ export function CharacterSkillsTable(props: CharacterDataProps) {
         { field: "ability", headerName: "Ability", flex: 1 },
         {
             field: "proficiency", headerName: "Prof", flex: 1,
-            editable: true,
-            type: 'singleSelect', valueOptions: [
-                { value: "", label: "None" },
-                { value: "half", label: "1/2" },
-                { value: "prof", label: "proficient" },
-                { value: "double", label: "x2" },
-            ]
+            sortable: false,
+            editable: false,
+            renderCell: (params) => {
+                return <ProficiencyDropdown formData={props.formData} setFormData={props.setFormData} skillName={params.row.skillName}/>
+            }
         },
         {
             field: "advantage", headerName: "Adv", flex: 1,
@@ -94,10 +130,10 @@ export function CharacterSkillsTable(props: CharacterDataProps) {
                             hideFooter={true}
                             onCellClick={handleCellClick}
                             processRowUpdate={handleProcessRowUpdate}
-                            density="compact"
                             disableColumnMenu
                             disableColumnSelector
                             disableRowSelectionOnClick
+                            disableColumnResize
                             autoHeight
                         />
                     </Grid>

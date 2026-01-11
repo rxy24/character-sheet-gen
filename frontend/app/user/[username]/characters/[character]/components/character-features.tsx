@@ -7,6 +7,7 @@ import React from "react";
 import { useAlert } from "../../../components/alert-provider";
 import { Add } from "@mui/icons-material";
 import { ClassFeature } from "./class-models";
+import { CharacterEffectModal } from "./character-effects";
 
 export interface CharacterFeatureProp {
     item: CharacterFeatures;
@@ -137,7 +138,7 @@ function EditFeatureButton(props: EditFeatureProp) {
         props.setFormData(prev => prev
             ? {
                 ...prev,
-                characterFeatures: prev.characterFeatures.map(previtem => item.featureDescription.name === props.featureName ? item : previtem)
+                characterFeatures: prev.characterFeatures.map(previtem => previtem.featureDescription.name === props.featureName ? item : previtem)
             }
             : prev
         );
@@ -247,42 +248,7 @@ function CharacterFeatureEffectField(characterFeature: CharacterFeatureProp) {
     };
     return (
         <>
-            <Typography >
-                Effect List
-            </Typography>
-            <Typography >
-                Add effects to allow default calculations of specific fields.
-            </Typography>
-            <Stack spacing={2} style={{ maxHeight: 200, overflowY: "auto", paddingTop: 10 }}>
-                {characterFeature.item.effects.map((effect, index) => (
-                    <Stack key={index} direction="row" spacing={2} alignItems="center" >
-                        <TextField
-                            label="Effect Name"
-                            value={effect.name}
-                            onChange={(e) => updateEffect(index, "name", e.target.value)}
-                            required
-                        />
-                        <TextField
-                            label="Effect Description"
-                            value={effect.description}
-                            onChange={(e) => updateEffect(index, "description", e.target.value)}
-                            required
-                        />
-                        <TextField
-                            label="Effect Value"
-                            value={effect.value}
-                            onChange={(e) => updateEffect(index, "value", e.target.value)}
-                            required
-                        />
-                        <Button variant="outlined" color="error" onClick={() => removeEffect(index)}>
-                            Remove
-                        </Button>
-                    </Stack>
-                ))}
-                <Button variant="contained" onClick={addEffect}>
-                    Add Effect
-                </Button>
-            </Stack>
+        <CharacterEffectModal addEffect={addEffect} removeEffect={removeEffect} updateEffect={updateEffect} effects={characterFeature.item.effects}/>
         </>
     )
 }
