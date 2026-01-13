@@ -8,6 +8,7 @@ import { useAlert } from "../../../components/alert-provider";
 import { Add } from "@mui/icons-material";
 import { ClassFeature } from "./class-models";
 import { CharacterEffectModal } from "./character-effects";
+import { MobileRowCard, useIsMobile } from "./character-mobile";
 
 export interface CharacterFeatureProp {
     item: CharacterFeatures;
@@ -276,6 +277,20 @@ function CharacterFeaturesTable(props: CharacterDataProps) {
         setRows(props.formData.characterFeatures.map(feature => feature.featureDescription))
     }, [props.formData.characterFeatures])
 
+    const isMobile = useIsMobile()
+    if (isMobile) {
+        return (
+            <>
+                <Grid container spacing={2}>
+                    {rows.map((row) => (
+                        <Grid key={row.name + "-grid"} size={{ xs: 12, sm: 12 }}>
+                            <MobileRowCard columns={columns} row={row} formData={props.formData} setFormData={props.setFormData} textColumnNameFilter={["moreDetails"]}/>
+                        </Grid>
+                    ))}
+                </Grid>
+            </>
+        )
+    }
     return (
         <>
             <DataGrid

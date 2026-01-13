@@ -9,6 +9,7 @@ import { SectionDivider } from "./character-fields";
 import { ClassFeatureSpellNumbers } from "./class-models";
 import { generate_spell_slot_updates } from "./character-logic";
 import { CharacterEffectModal } from "./character-effects";
+import { MobileRowCard, useIsMobile } from "./character-mobile";
 
 export interface SpellFormProps {
     item: CharacterSpells;
@@ -332,7 +333,7 @@ function SpellTable(props: CharacterDataProps) {
             renderCell: (params) => {
                 return <>
                     <Button onClick={() => handleCast(params)} variant="outlined">
-                        Cast Spell
+                        Activate
                     </Button>
                 </>;
             }
@@ -364,6 +365,21 @@ function SpellTable(props: CharacterDataProps) {
             : prev
         );
     };
+    const isMobile = useIsMobile()
+    if (isMobile) {
+        return (
+            <>
+                <Grid container spacing={2}>
+                    {rows.map((row) => (
+                        <Grid key={row.spellName + "-grid"} size={{ xs: 12, sm: 12 }}>
+                            <MobileRowCard columns={columns} row={row} formData={props.formData} setFormData={props.setFormData} textColumnNameFilter={["moreDetails", "isActive"]} />
+                        </Grid>
+                    ))}
+                </Grid>
+            </>
+        )
+    }
+
     return (
         <>
             <DataGrid
@@ -520,7 +536,7 @@ export function SpellTableInfo(props: CharacterSpellDataProps) {
                 <SpellSlotTable formData={props.formData} setFormData={props.setFormData} classListData={props.classListData} setClassListData={props.setClassListData} />
                 <ResetSpellSlotButton formData={props.formData} setFormData={props.setFormData} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 10 }}>
+            <Grid size={{ xs: 12, sm: 12 }}>
                 <SpellTable formData={props.formData} setFormData={props.setFormData} />
                 <AddSpellsButton formData={props.formData} setFormData={props.setFormData} />
             </Grid>

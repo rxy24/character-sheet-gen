@@ -1,11 +1,13 @@
 import { DataGrid, GridCellParams, GridColDef } from "@mui/x-data-grid";
 import { Character, CharacterDataProps, Effect, InventoryItem } from "./character-models";
 import { useEffect, useState } from "react";
-import { Add, CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, Stack, TextField, Typography } from "@mui/material";
+import { Add } from "@mui/icons-material";
+import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, Stack, TextField, useMediaQuery, useTheme } from "@mui/material";
 import { SectionDivider } from "./character-fields";
 import { useAlert } from "../../../components/alert-provider";
 import React from "react";
+import { CharacterEffectModal } from "./character-effects";
+import { MobileRowCard, useIsMobile } from "./character-mobile";
 
 export interface InventoryItemProp {
     item: InventoryItem
@@ -24,7 +26,17 @@ export interface InventoryProps {
     useIsActiveFilter: boolean
 }
 
-function inventory_columns(props: CharacterDataProps): GridColDef[] {
+export interface ActiveEquipmentProps {
+    formData: Character;
+    setFormData: React.Dispatch<React.SetStateAction<Character | null>>;
+    isActiveEquipment: boolean
+    isMobile : boolean
+    equipmentName: string
+}
+
+
+
+function inventory_columns(isMobile: boolean, props: CharacterDataProps): GridColDef[] {
     return [
         { field: "name", headerName: "Name", flex: 1 },
         { field: "description", headerName: "Description", flex: 1 },
@@ -34,7 +46,7 @@ function inventory_columns(props: CharacterDataProps): GridColDef[] {
             sortable: false,
             editable: false,
             renderCell: (params) => {
-                return params.value ? <CheckBox /> : <CheckBoxOutlineBlank />;
+                return <EquipCheckBox key={params.row.name + "-active-equipment-box"} equipmentName={params.row.name} isActiveEquipment={params.value} formData={props.formData} setFormData={props.setFormData} isMobile={isMobile}/>;
             }
         },
         {
@@ -48,6 +60,21 @@ function inventory_columns(props: CharacterDataProps): GridColDef[] {
             }
         }
     ]
+}
+
+function EquipCheckBox(props: ActiveEquipmentProps) {
+    const handleChange = (event : React.ChangeEvent<HTMLInputElement>) => {
+        const eventBoolean = props.isMobile? event.target.checked : !props.isActiveEquipment
+        props.setFormData(prev => prev ? {
+            ...prev,
+            inventory: props.formData.inventory.map(item => item.name === props.equipmentName ? { ...item, isActive: eventBoolean } : item)
+        } : prev)
+    }
+    return (
+        <>
+            <Checkbox checked={props.isActiveEquipment} size="medium" onChange={handleChange} />
+        </>
+    )
 }
 
 function InventoryItemFormField(props: InventoryItemProp) {
@@ -113,42 +140,7 @@ function InventoryItemEffectField(props: InventoryItemProp) {
     };
     return (
         <>
-            <Typography >
-                Effect List
-            </Typography>
-            <Typography >
-                Add effects to allow default calculations of specific fields.
-            </Typography>
-            <Stack spacing={2} style={{ maxHeight: 200, overflowY: "auto", paddingTop: 10 }}>
-                {props.item.effects.map((effect, index) => (
-                    <Stack key={index} direction="row" spacing={2} alignItems="center" >
-                        <TextField
-                            label="Effect Name"
-                            value={effect.name}
-                            onChange={(e) => updateEffect(index, "name", e.target.value)}
-                            required
-                        />
-                        <TextField
-                            label="Effect Description"
-                            value={effect.description}
-                            onChange={(e) => updateEffect(index, "description", e.target.value)}
-                            required
-                        />
-                        <TextField
-                            label="Effect Value"
-                            value={effect.value}
-                            onChange={(e) => updateEffect(index, "value", e.target.value)}
-                            required
-                        />
-                        <Button variant="outlined" color="error" onClick={() => removeEffect(index)}>
-                            Remove
-                        </Button>
-                    </Stack>
-                ))}
-                <Button variant="contained" onClick={addEffect}>
-                    Add Effect
-                </Button>
-            </Stack>
+            <CharacterEffectModal addEffect={addEffect} removeEffect={removeEffect} updateEffect={updateEffect} effects={props.item.effects} />
         </>
     )
 }
@@ -344,8 +336,9 @@ function AddInventoryButton(props: CharacterDataProps) {
 }
 
 function InventoryTable(props: InventoryProps) {
-    const columns: GridColDef[] = inventory_columns(props)
-    const currInventoryList : InventoryItem[] = props.useIsActiveFilter? props.formData.inventory.filter(item => item.isActive) : props.formData.inventory 
+    const isMobile = useIsMobile(); 
+    const columns: GridColDef[] = inventory_columns(isMobile, props)
+    const currInventoryList: InventoryItem[] = props.useIsActiveFilter ? props.formData.inventory.filter(item => item.isActive) : props.formData.inventory
     const [rows, setRows] = useState(currInventoryList)
 
     useEffect(() => {
@@ -354,7 +347,6 @@ function InventoryTable(props: InventoryProps) {
 
     const handleCellClick = (params: GridCellParams) => {
         if (params.field !== "isActive") return;
-
         setRows((prev) =>
             prev.map((row) =>
                 row.name === params.id
@@ -362,14 +354,21 @@ function InventoryTable(props: InventoryProps) {
                     : row
             )
         )
-        props.setFormData(prev => prev
-            ? {
-                ...prev,
-                inventory: prev.inventory.map(item => item.name === params.id ? { ...item, isActive: !item.isActive } : item)
-            }
-            : prev
-        );
     };
+    if (isMobile) {
+        return (
+            <>
+                <Grid container spacing={2}>
+                    {rows.map((row) => (
+                        <Grid key={row.name + "-grid"} size={{ xs: 12, sm: 12 }}>
+                            <MobileRowCard columns={columns} row={row} formData={props.formData} setFormData={props.setFormData} textColumnNameFilter={["moreDetails", "isActive"]}/>
+                        </Grid>
+                    ))}
+                </Grid>
+            </>
+        )
+    }
+
     return (
         <div>
             <DataGrid
@@ -396,7 +395,7 @@ export function ActiveInventoryTableInfo(props: CharacterDataProps) {
             spacing={2}>
             <Grid size={{ xs: 12, sm: 12 }}>
                 <SectionDivider sectionText="Active Inventory" />
-                <InventoryTable formData={props.formData} setFormData={props.setFormData} useIsActiveFilter={true}/>
+                <InventoryTable formData={props.formData} setFormData={props.setFormData} useIsActiveFilter={true} />
             </Grid>
         </Grid>
     </Box>
@@ -411,7 +410,7 @@ export function InventoryTableInfo(props: CharacterDataProps) {
             spacing={2}>
             <Grid size={{ xs: 12, sm: 12 }}>
                 <SectionDivider sectionText="Inventory" />
-                <InventoryTable formData={props.formData} setFormData={props.setFormData} useIsActiveFilter={false}/>
+                <InventoryTable formData={props.formData} setFormData={props.setFormData} useIsActiveFilter={false} />
                 <AddInventoryButton formData={props.formData} setFormData={props.setFormData} />
             </Grid>
         </Grid>

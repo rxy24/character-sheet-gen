@@ -5,6 +5,7 @@ import { Add } from "@mui/icons-material";
 import React, { useState } from "react";
 import { useAlert } from "../../../components/alert-provider";
 import { SectionDivider } from "./character-fields";
+import { MobileRowCard, useIsMobile } from "./character-mobile";
 
 
 export function AddNewCharacterClassModal(charLevelProp: CharacterLevelDataProps) {
@@ -191,6 +192,21 @@ export function ClassLevelTable(classProps: ClassLevelFieldProps) {
             : prev
         );
         return newRow
+    }
+
+    const isMobile = useIsMobile()
+    if (isMobile) {
+        return (
+            <>
+                <Grid container spacing={2}>
+                    {rows.map((row) => (
+                        <Grid key={row.className + "-grid"} size={{ xs: 12, sm: 12 }}>
+                            <MobileRowCard columns={columns} row={row} formData={classProps.pageProps.formData} setFormData={classProps.pageProps.setFormData} textColumnNameFilter={["delete"]} />
+                        </Grid>
+                    ))}
+                </Grid>
+            </>
+        )
     }
 
     return <DataGrid

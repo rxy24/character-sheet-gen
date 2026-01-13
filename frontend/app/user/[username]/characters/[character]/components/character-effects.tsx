@@ -19,7 +19,7 @@ export function CharacterEffectModal(props : EffectModalProps) {
             </Typography>
             <Stack spacing={2} style={{ maxHeight: 200, overflowY: "auto", paddingTop: 10 }}>
                 {props.effects.map((effect, index) => (
-                    <Stack key={index} direction="row" spacing={2} alignItems="center" >
+                    <Stack key={index} direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "left", sm: "center" }}>
                         <TextField
                             label="Effect Name"
                             value={effect.name}
@@ -43,10 +43,10 @@ export function CharacterEffectModal(props : EffectModalProps) {
                         </Button>
                     </Stack>
                 ))}
-                <Button variant="contained" onClick={props.addEffect}>
-                    Add Effect
-                </Button>
             </Stack>
+            <Button variant="contained" onClick={props.addEffect} sx={{marginTop: 2}}>
+                    Add Effect
+            </Button>
         </>
     )
 }
