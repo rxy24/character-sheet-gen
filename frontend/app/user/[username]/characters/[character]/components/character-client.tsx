@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchCharacter } from "../../../../../libs/character-data";
 import { CharacterLevelField, CharacterNameField, CharacterMiscField, SectionDivider } from './character-fields';
-import { Container, Grid, Box, Tabs, Tab } from "@mui/material";
+import { Container, Grid, Box, Tabs, Tab, BottomNavigation, BottomNavigationAction, AppBar, Toolbar, Typography, Button, Drawer, List, ListItem, ListItemIcon, ListItemText, ListItemButton, Divider, IconButton } from "@mui/material";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Character, CharacterDataProps } from "./character-models";
 import { character_level_calculation } from './character-logic';
@@ -18,6 +18,9 @@ import { CharacterPassiveField } from "./character-passive";
 import { AbilitySaveScoresInfo } from "./character-abilities";
 import { CombatInfo } from "./character-combat";
 import { CharacterFeatureInfo } from "./character-features";
+import MenuIcon from '@mui/icons-material/Menu';
+import HomeIcon from '@mui/icons-material/Home';
+import { usePathname } from "next/navigation";
 
 const queryClient = new QueryClient()
 
@@ -160,9 +163,49 @@ interface CharacterUrlProp {
 }
 
 export default function CharacterClientPage({ characterSlug }: CharacterUrlProp) {
+    const [open, setOpen] = React.useState(false);
+
+    const toggleDrawer = (newOpen: boolean) => () => {
+        setOpen(newOpen);
+    };
+
+    const currentPath = usePathname()
+    const newPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+
+    const DrawerList = (
+        <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
+            <List>
+                <ListItem key={"Home"} disablePadding>
+                    <ListItemButton component="a" href={newPath}>
+                        <ListItemIcon>
+                            <HomeIcon />
+                        </ListItemIcon>
+                        <ListItemText primary={"Home"} />
+                    </ListItemButton>
+                </ListItem>
+            </List>
+
+        </Box>
+    )
     return (
         <QueryClientProvider client={queryClient}>
+            <AppBar position="sticky" sx={{
+                backgroundColor: "#23486D",
+                marginBottom: 1,
+                height: "64px"
+            }}>
+                <Toolbar>
+                    <IconButton sx={{ ml: 1, mr: 2 }} onClick={toggleDrawer(true)} color="inherit"><MenuIcon /></IconButton>
+                    <Drawer open={open} onClose={toggleDrawer(false)}>
+                        {DrawerList}
+                    </Drawer>
+                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                        Character Sheet Gen
+                    </Typography>
+                </Toolbar>
+            </AppBar>
             <CharacterClientContent character={characterSlug} />
         </QueryClientProvider>
+
     );
 }
