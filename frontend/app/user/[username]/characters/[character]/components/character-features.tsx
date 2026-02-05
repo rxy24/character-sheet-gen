@@ -62,7 +62,7 @@ function AddFeatureButton(props: CharacterDataProps) {
         <>
             <Box display="flex" justifyContent="center" mt={2}>
                 <Button onClick={handleOpen} variant="outlined" startIcon={<Add />}>
-                    Add New Item
+                    Add New Feature
                 </Button>
             </Box>
             <Dialog

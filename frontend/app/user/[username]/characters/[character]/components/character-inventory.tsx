@@ -72,7 +72,7 @@ function EquipCheckBox(props: ActiveEquipmentProps) {
     }
     return (
         <>
-            <Checkbox checked={props.isActiveEquipment} size="medium" onChange={handleChange} />
+            <Checkbox checked={props.isActiveEquipment || false} size="medium" onChange={handleChange} />
         </>
     )
 }

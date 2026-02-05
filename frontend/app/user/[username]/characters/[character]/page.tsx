@@ -9,7 +9,7 @@ export default async function CharacterPage({ params }: { params: { character: s
   const cookieStore = await cookies()
   const { character } = await params
   if (!cookieStore.get(TOKEN_LABEL)) {
-    const username : string | undefined = cookieStore.get(USERNAME_LABEL)?.value;
+    const username: string | undefined = cookieStore.get(USERNAME_LABEL)?.value;
 
     redirect(`/user/${username}/characters`)
   }
